@@ -1,3 +1,9 @@
 node_modules
 dist
 *.log
+
+.env
+
+prisma/migrations
+schema.graphql
+src/generated

@@ -5,6 +5,7 @@
     "alwaysStrict": true,
     "declaration": false,
     "sourceMap": false,
+    "esModuleInterop": true,
     "lib": ["ES6", "DOM"],
     "module": "CommonJS",
     "moduleResolution": "Node",

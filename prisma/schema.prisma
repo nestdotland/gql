@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  name     String  @id @db.VarChar(40)
+  fullName String? @db.VarChar(100)
+  bioText  String?
+  email    String? @unique @db.VarChar(100)
+
+  modules       Module[]
+  contributions ModuleContributors[] @relation("ContributesTo")
+  publications  Version[]
+}
+
+model Module {
+  name        String   @db.VarChar(40)
+  fullName    String?  @db.VarChar(100)
+  description String?
+  homepage    String?
+  repository  String?
+  issues      String?
+  license     String?  @default("UNKNOWN")
+  private     Boolean? @default(false)
+  unlisted    Boolean? @default(false)
+  ignore      String
+  hooks       Json?
+  main        String?
+  bin         String[]
+  keywords    String[]
+  logo        String?
+
+  author           User                 @relation(fields: [authorName], references: [name])
+  authorName       String               @db.VarChar(40)
+  contributors     ModuleContributors[] @relation("Contributors")
+  tags             Tag[]
+  versions         Version[]            @relation("Versions")
+  latest           Version?             @relation(fields: [latestTag, latestAuthorName, latestModuleName], references: [version, authorName, moduleName])
+  latestTag        String?              @db.VarChar(40)
+  latestAuthorName String?              @db.VarChar(40)
+  latestModuleName String?              @db.VarChar(40)
+
+  @@id([authorName, name])
+}
+
+model Version {
+  version       String   @db.VarChar(40)
+  published     DateTime @default(now())
+  deprecated    Boolean? @default(false)
+  vulnerable    Boolean? @default(false)
+  supportedDeno String[]
+
+  module        Module  @relation("Versions", fields: [moduleName, authorName], references: [name, authorName])
+  authorName    String  @db.VarChar(40)
+  moduleName    String  @db.VarChar(40)
+  publisher     User    @relation(fields: [publisherName], references: [name])
+  publisherName String  @db.VarChar(40)
+  tag           Tag?
+  latestOf      Module? // relation 1..0 1..0
+  files         File[]
+
+  dependencies VersionDependencies[] @relation("Dependencies")
+  dependents   VersionDependencies[] @relation("Dependents")
+
+  @@id([authorName, moduleName, version])
+}
+
+model Tag {
+  name String @db.VarChar(40)
+
+  module     Module  @relation(fields: [moduleName, authorName], references: [name, authorName])
+  version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
+  versionTag String  @db.VarChar(40)
+  authorName String  @db.VarChar(40)
+  moduleName String  @db.VarChar(40)
+
+  @@id([authorName, moduleName, versionTag, name])
+}
+
+model File {
+  name String @db.VarChar(100)
+  path String
+  type String @db.VarChar(100)
+  hash String @db.VarChar(1000) // to be adapted according to the hash method
+  txID String @db.VarChar(1000) // to be adapted according to arweave
+
+  version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
+  versionTag String  @db.VarChar(40)
+  authorName String  @db.VarChar(40)
+  moduleName String  @db.VarChar(40)
+
+  @@id([authorName, moduleName, versionTag, path])
+}
+
+model ModuleContributors {
+  contributor     User   @relation("ContributesTo", fields: [contributorName], references: [name])
+  contributorName String @db.VarChar(40)
+  module          Module @relation("Contributors", fields: [authorName, moduleName], references: [authorName, name])
+  authorName      String @db.VarChar(40)
+  moduleName      String @db.VarChar(40)
+
+  @@id([authorName, moduleName, contributorName])
+}
+
+model VersionDependencies {
+  dependency           Version @relation("Dependencies", fields: [dependencyAuthorName, dependencyModuleName, dependencyVersion], references: [authorName, moduleName, version])
+  dependencyAuthorName String  @db.VarChar(40)
+  dependencyModuleName String  @db.VarChar(40)
+  dependencyVersion    String  @db.VarChar(40)
+  dependent            Version @relation("Dependents", fields: [dependentAuthorName, dependentModuleName, dependentVersion], references: [authorName, moduleName, version])
+  dependentAuthorName  String  @db.VarChar(40)
+  dependentModuleName  String  @db.VarChar(40)
+  dependentVersion     String  @db.VarChar(40)
+
+  @@id([dependencyAuthorName, dependencyModuleName, dependencyVersion, dependentAuthorName, dependentModuleName, dependentVersion])
+}
