@@ -3,6 +3,7 @@ dist
 *.log
 
 .env
+connect.sh
 
 prisma/migrations
 schema.graphql

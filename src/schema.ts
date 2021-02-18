@@ -1,13 +1,10 @@
 import {
-  arg,
   asNexusMethod,
-  enumType,
-  inputObjectType,
-  intArg,
   makeSchema,
-  nonNull,
   objectType,
-  stringArg,
+  nonNull,
+  inputObjectType,
+  arg,
 } from "nexus";
 import { GraphQLDateTime } from "graphql-iso-date";
 
@@ -23,72 +20,11 @@ const Query = objectType({
       },
     });
 
-    t.nullable.field("postById", {
-      type: "Post",
-      args: {
-        id: intArg(),
-      },
-      resolve: (_parent, args, context) => {
-        return context.prisma.post.findUnique({
-          where: { id: args.id || 1 },
-        });
-      },
-    });
-
-    t.nonNull.list.nonNull.field("feed", {
-      type: "Post",
-      args: {
-        searchString: stringArg(),
-        skip: intArg(),
-        take: intArg(),
-        orderBy: arg({
-          type: "PostOrderByUpdatedAtInput",
-        }),
-      },
-      resolve: (_parent, args, context) => {
-        const or = args.searchString
-          ? {
-            OR: [
-              { title: { contains: args.searchString } },
-              { content: { contains: args.searchString } },
-            ],
-          }
-          : {};
-
-        return context.prisma.post.findMany({
-          where: {
-            published: true,
-            ...or,
-          },
-          take: args.take || undefined,
-          skip: args.skip || undefined,
-          orderBy: args.orderBy || undefined,
-        });
-      },
-    });
-
-    t.list.field("draftsByUser", {
-      type: "Post",
-      args: {
-        userUniqueInput: nonNull(
-          arg({
-            type: "UserUniqueInput",
-          }),
-        ),
-      },
-      resolve: (_parent, args, context) => {
-        return context.prisma.user
-          .findUnique({
-            where: {
-              id: args.userUniqueInput.id || undefined,
-              email: args.userUniqueInput.email || undefined,
-            },
-          })
-          .posts({
-            where: {
-              published: false,
-            },
-          });
+    t.nonNull.list.nonNull.field("allModules", {
+      type: "Module",
+      // @ts-ignore
+      resolve: (_parent, _args, context) => {
+        return context.prisma.module.findMany();
       },
     });
   },
@@ -97,237 +33,306 @@ const Query = objectType({
 const Mutation = objectType({
   name: "Mutation",
   definition(t) {
-    t.nonNull.field("signupUser", {
+    t.nonNull.field("addUser", {
       type: "User",
       args: {
         data: nonNull(
           arg({
-            type: "UserCreateInput",
-          }),
+            type: "UserCreateInput"
+          })
         ),
       },
       resolve: (_, args, context) => {
-        const postData = args.data.posts?.map((post) => {
-          return { title: post.title, content: post.content || undefined };
-        });
         return context.prisma.user.create({
           data: {
             name: args.data.name,
+            fullName: args.data.fullName,
+            bioText: args.data.bioText,
             email: args.data.email,
-            posts: {
-              create: postData,
-            },
           },
         });
       },
-    });
-
-    t.field("createDraft", {
-      type: "Post",
-      args: {
-        data: nonNull(
-          arg({
-            type: "PostCreateInput",
-          }),
-        ),
-        authorEmail: nonNull(stringArg()),
-      },
-      resolve: (_, args, context) => {
-        return context.prisma.post.create({
-          data: {
-            title: args.data.title,
-            content: args.data.content,
-            author: {
-              connect: { email: args.authorEmail },
-            },
-          },
-        });
-      },
-    });
-
-    t.field("togglePublishPost", {
-      type: "Post",
-      args: {
-        id: nonNull(intArg()),
-      },
-      resolve: async (_, args, context) => {
-        try {
-          const post = await context.prisma.post.findUnique({
-            where: { id: args.id || undefined },
-            select: {
-              published: true,
-            },
-          });
-          return context.prisma.post.update({
-            where: { id: args.id || undefined },
-            data: { published: !post?.published },
-          });
-        } catch (e) {
-          throw new Error(
-            `Post with ID ${args.id} does not exist in the database.`,
-          );
-        }
-      },
-    });
-
-    t.field("incrementPostViewCount", {
-      type: "Post",
-      args: {
-        id: nonNull(intArg()),
-      },
-      resolve: (_, args, context) => {
-        return context.prisma.post.update({
-          where: { id: args.id || undefined },
-          data: {
-            viewCount: {
-              increment: 1,
-            },
-          },
-        });
-      },
-    });
-
-    t.field("deletePost", {
-      type: "Post",
-      args: {
-        id: nonNull(intArg()),
-      },
-      resolve: (_, args, context) => {
-        return context.prisma.post.delete({
-          where: { id: args.id },
-        });
-      },
-    });
-
-    t.field("addProfileForUser", {
-      type: "Profile",
-      args: {
-        userUniqueInput: nonNull(
-          arg({
-            type: "UserUniqueInput",
-          }),
-        ),
-        bio: stringArg(),
-      },
-      resolve: async (_, args, context) => {
-        return context.prisma.profile.create({
-          data: {
-            bio: args.bio,
-            user: {
-              connect: {
-                id: args.userUniqueInput.id || undefined,
-                email: args.userUniqueInput.email || undefined,
-              },
-            },
-          },
-        });
-      },
-    });
-  },
-});
-
-const Profile = objectType({
-  name: "Profile",
-  definition(t) {
-    t.nonNull.int("id");
-    t.string("bio");
-    t.field("user", {
-      type: "User",
-      resolve: (parent, _, context) => {
-        return context.prisma.profile
-          .findUnique({
-            where: { id: parent.id || undefined },
-          })
-          .user();
-      },
-    });
+    })
   },
 });
 
 const User = objectType({
   name: "User",
   definition(t) {
-    t.nonNull.int("id");
-    t.string("name");
-    t.nonNull.string("email");
-    t.nonNull.list.nonNull.field("posts", {
-      type: "Post",
-      resolve: (parent, _, context) => {
-        return context.prisma.user
-          .findUnique({
-            where: { id: parent.id || undefined },
-          })
-          .posts();
-      },
-    });
-    t.field("profile", {
-      type: "Profile",
+    t.nonNull.string("name");
+    t.string("fullName");
+    t.string("bioText");
+    t.string("email");
+    t.list.field("modules", {
+      type: "Module",
+      // @ts-ignore
       resolve: (parent, _, context) => {
         return context.prisma.user.findUnique({
-          where: { id: parent.id },
-        }).profile();
+          where: { name: parent.name },
+        }).modules();
       },
     });
-  },
-});
-
-const Post = objectType({
-  name: "Post",
-  definition(t) {
-    t.nonNull.int("id");
-    t.nonNull.field("createdAt", { type: "DateTime" });
-    t.nonNull.field("updatedAt", { type: "DateTime" });
-    t.nonNull.string("title");
-    t.string("content");
-    t.nonNull.boolean("published");
-    t.nonNull.int("viewCount");
-    t.field("author", {
-      type: "User",
+    // TODO: contributions
+    t.list.field("publications", {
+      type: "Version",
+      // @ts-ignore
       resolve: (parent, _, context) => {
-        return context.prisma.post
-          .findUnique({
-            where: { id: parent.id || undefined },
-          })
-          .author();
+        return context.prisma.user.findUnique({
+          where: { name: parent.name },
+        }).publications();
       },
     });
   },
 });
 
-const SortOrder = enumType({
-  name: "SortOrder",
-  members: ["asc", "desc"],
-});
-
-const PostOrderByUpdatedAtInput = inputObjectType({
-  name: "PostOrderByUpdatedAtInput",
+const Module = objectType({
+  name: "Module",
   definition(t) {
-    t.nonNull.field("updatedAt", { type: "SortOrder" });
+    t.nonNull.string("name");
+    t.nonNull.string("authorName");
+    t.string("fullName")
+    t.string("description");
+    t.string("homepage");
+    t.string("repository");
+    t.string("issues");
+    t.string("license");
+    t.nonNull.string("license");
+    t.nonNull.boolean("private");
+    t.nonNull.boolean("unlisted");
+    t.nonNull.string("ignore");
+    // TODO: hooks
+    t.string("main");
+    t.list.string("bin");
+    t.list.string("keywords");
+    t.string("logo");
+    t.nonNull.date("lastSync");
+    t.nonNull.field("author", {
+      type: "User",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.module.findUnique({
+          where: {
+            authorName_name: {
+              authorName: parent.authorName,
+              name: parent.name,
+            },
+          },
+        }).author();
+      },
+    });
+    // TODO contributors
+    t.field("tags", {
+      type: "Tag",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.module.findUnique({
+          where: {
+            authorName_name: {
+              authorName: parent.authorName,
+              name: parent.name,
+            },
+          },
+        }).tags();
+      },
+    });
+    t.list.field("versions", {
+      type: "Version",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.module.findUnique({
+          where: {
+            authorName_name: {
+              authorName: parent.authorName,
+              name: parent.name,
+            },
+          },
+        }).versions();
+      },
+    });
+    t.field("latest", {
+      type: "Version",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.module.findUnique({
+          where: {
+            authorName_name: {
+              authorName: parent.authorName,
+              name: parent.name,
+            },
+          },
+        }).latest();
+      },
+    });
   },
 });
 
-const UserUniqueInput = inputObjectType({
-  name: "UserUniqueInput",
+const Version = objectType({
+  name: "Version",
   definition(t) {
-    t.int("id");
-    t.string("email");
+    t.nonNull.string("version");
+    t.nonNull.date("published");
+    t.nonNull.boolean("deprecated");
+    t.nonNull.boolean("vulnerable");
+    t.list.string("supportedDeno");
+    t.nonNull.field("module", {
+      type: "Module",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              version: parent.version,
+            },
+          },
+        }).module();
+      },
+    });
+    t.nonNull.string("authorName");
+    t.nonNull.string("moduleName");
+    t.nonNull.field("publisher", {
+      type: "User",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              version: parent.version,
+            },
+          },
+        }).publisher();
+      },
+    });
+    t.field("tag", {
+      type: "Tag",
+      resolve: (parent, _, context) => {
+        return context.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              version: parent.version,
+            },
+          },
+        }).tag();
+      },
+    });
+    t.field("latestOf", {
+      type: "Module",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              version: parent.version,
+            },
+          },
+        }).latestOf();
+      },
+    });
+    t.list.field("files", {
+      type: "File",
+      resolve: (parent, _, context) => {
+        return context.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              version: parent.version,
+            },
+          },
+        }).files();
+      },
+    });
+
+    // TODO dependencies
   },
 });
 
-const PostCreateInput = inputObjectType({
-  name: "PostCreateInput",
+const Tag = objectType({
+  name: "Tag",
   definition(t) {
-    t.nonNull.string("title");
-    t.string("content");
+    t.nonNull.string("name");
+    t.nonNull.field("module", {
+      type: "Module",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.tag.findUnique({
+          where: {
+            authorName_moduleName_versionTag_name: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              versionTag: parent.versionTag,
+              name: parent.name,
+            },
+          },
+        }).module();
+      },
+    });
+    t.nonNull.field("version", {
+      type: "Version",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.tag.findUnique({
+          where: {
+            authorName_moduleName_versionTag_name: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              versionTag: parent.versionTag,
+              name: parent.name,
+            },
+          },
+        }).version();
+      },
+    });
+    t.nonNull.string("authorName");
+    t.nonNull.string("moduleName");
+    t.nonNull.string("versionTag");
+  },
+});
+
+const File = objectType({
+  name: "File",
+  definition(t) {
+    t.nonNull.string("name");
+    t.nonNull.string("path");
+    t.nonNull.string("type");
+    t.nonNull.string("hash");
+    t.nonNull.string("txID");
+    t.nonNull.field("version", {
+      type: "Version",
+      // @ts-ignore
+      resolve: (parent, _, context) => {
+        return context.prisma.file.findUnique({
+          where: {
+            authorName_moduleName_versionTag_path: {
+              authorName: parent.authorName,
+              moduleName: parent.moduleName,
+              versionTag: parent.versionTag,
+              path: parent.path,
+            },
+          },
+        }).version();
+      },
+    });
+    t.nonNull.string("authorName");
+    t.nonNull.string("moduleName");
+    t.nonNull.string("versionTag");
   },
 });
 
 const UserCreateInput = inputObjectType({
   name: "UserCreateInput",
   definition(t) {
-    t.nonNull.string("email");
-    t.string("name");
-    t.list.nonNull.field("posts", { type: "PostCreateInput" });
+    t.nonNull.string("name");
+    t.string("fullName");
+    t.string("bioText");
+    t.string("email");
   },
 });
 
@@ -335,14 +340,12 @@ export const schema = makeSchema({
   types: [
     Query,
     Mutation,
-    Post,
     User,
-    Profile,
-    UserUniqueInput,
+    Module,
+    Version,
+    Tag,
+    File,
     UserCreateInput,
-    PostCreateInput,
-    SortOrder,
-    PostOrderByUpdatedAtInput,
     DateTime,
   ],
   outputs: {

@@ -37,6 +37,7 @@ model Module {
   bin         String[]
   keywords    String[]
   logo        String?
+  lastSync    DateTime @updatedAt
 
   author           User                 @relation(fields: [authorName], references: [name])
   authorName       String               @db.VarChar(40)
@@ -78,9 +79,9 @@ model Tag {
 
   module     Module  @relation(fields: [moduleName, authorName], references: [name, authorName])
   version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
-  versionTag String  @db.VarChar(40)
   authorName String  @db.VarChar(40)
   moduleName String  @db.VarChar(40)
+  versionTag String  @db.VarChar(40)
 
   @@id([authorName, moduleName, versionTag, name])
 }
@@ -93,9 +94,9 @@ model File {
   txID String @db.VarChar(1000) // to be adapted according to arweave
 
   version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
-  versionTag String  @db.VarChar(40)
   authorName String  @db.VarChar(40)
   moduleName String  @db.VarChar(40)
+  versionTag String  @db.VarChar(40)
 
   @@id([authorName, moduleName, versionTag, path])
 }
