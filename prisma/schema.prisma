@@ -32,7 +32,6 @@ model Module {
   private     Boolean? @default(false)
   unlisted    Boolean? @default(false)
   ignore      String
-  hooks       Json?
   main        String?
   bin         String[]
   keywords    String[]
@@ -48,8 +47,22 @@ model Module {
   latestTag        String?              @db.VarChar(40)
   latestAuthorName String?              @db.VarChar(40)
   latestModuleName String?              @db.VarChar(40)
+  hooks            Hooks?
 
   @@id([authorName, name])
+}
+
+model Hooks {
+  presync     String?
+  postsync    String?
+  prepublish  String?
+  postpublish String?
+
+  module     Module @relation(fields: [moduleName, authorName], references: [name, authorName])
+  authorName String @db.VarChar(40)
+  moduleName String @db.VarChar(40)
+
+  @@id([authorName, moduleName])
 }
 
 model Version {
@@ -58,6 +71,7 @@ model Version {
   deprecated    Boolean? @default(false)
   vulnerable    Boolean? @default(false)
   supportedDeno String[]
+  dependencies  String[]
 
   module        Module  @relation("Versions", fields: [moduleName, authorName], references: [name, authorName])
   authorName    String  @db.VarChar(40)
@@ -67,9 +81,6 @@ model Version {
   tag           Tag?
   latestOf      Module? // relation 1..0 1..0
   files         File[]
-
-  dependencies VersionDependencies[] @relation("Dependencies")
-  dependents   VersionDependencies[] @relation("Dependents")
 
   @@id([authorName, moduleName, version])
 }
@@ -109,17 +120,4 @@ model ModuleContributors {
   moduleName      String @db.VarChar(40)
 
   @@id([authorName, moduleName, contributorName])
-}
-
-model VersionDependencies {
-  dependency           Version @relation("Dependencies", fields: [dependencyAuthorName, dependencyModuleName, dependencyVersion], references: [authorName, moduleName, version])
-  dependencyAuthorName String  @db.VarChar(40)
-  dependencyModuleName String  @db.VarChar(40)
-  dependencyVersion    String  @db.VarChar(40)
-  dependent            Version @relation("Dependents", fields: [dependentAuthorName, dependentModuleName, dependentVersion], references: [authorName, moduleName, version])
-  dependentAuthorName  String  @db.VarChar(40)
-  dependentModuleName  String  @db.VarChar(40)
-  dependentVersion     String  @db.VarChar(40)
-
-  @@id([dependencyAuthorName, dependencyModuleName, dependencyVersion, dependentAuthorName, dependentModuleName, dependentVersion])
 }
