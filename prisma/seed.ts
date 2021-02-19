@@ -3,27 +3,6 @@ import faker from "faker";
 
 const prisma = new PrismaClient();
 
-/* [
-  {
-    name: 'Mahmoud',
-    email: 'mahmoud@prisma.io',
-    posts: {
-      create: [
-        {
-          title: 'Ask a question about Prisma on GitHub',
-          content: 'https://www.github.com/prisma/prisma/discussions',
-          published: true,
-          viewCount: 128,
-        },
-        {
-          title: 'Prisma on YouTube',
-          content: 'https://pris.ly/youtube',
-        },
-      ],
-    },
-  },
-] */
-
 const MAX_USER_COUNT = 30;
 const MAX_MODULE_COUNT = 5;
 const MAX_VERSION_COUNT = 5;
@@ -68,14 +47,8 @@ async function main() {
         unlisted: faker.random.boolean(),
         ignore: faker.system.fileExt(faker.system.mimeType()),
         main: faker.system.filePath(),
-        bin: Array.from(
-          new Array(faker.random.number(5)),
-          () => faker.system.filePath(),
-        ),
-        keywords: Array.from(
-          new Array(faker.random.number(5)),
-          () => faker.random.word(),
-        ),
+        bin: Array.from(new Array(faker.random.number(5)), () => faker.system.filePath()),
+        keywords: Array.from(new Array(faker.random.number(5)), () => faker.random.word()),
         author: {
           connect: {
             name: user.name,
@@ -139,7 +112,7 @@ async function main() {
         console.log(`Created version: ${version.version}`);
       } catch (err) {
         console.error(`Failed to create version: ${version.version}\n${err}`);
-        console.debug(version.module.connect)
+        console.debug(version.module.connect);
       }
     }
   }

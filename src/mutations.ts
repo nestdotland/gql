@@ -1,27 +1,18 @@
-import { arg, nonNull, objectType } from "nexus";
+import { mutationType } from "nexus";
 
-export const Mutation = objectType({
-  name: "Mutation",
+export const Mutation = mutationType({
   definition(t) {
-    t.nonNull.field("addUser", {
-      type: "User",
-      args: {
-        data: nonNull(
-          arg({
-            type: "UserCreateInput",
-          }),
-        ),
-      },
-      resolve: (_, args, context) => {
-        return context.prisma.user.create({
-          data: {
-            name: args.data.name,
-            fullName: args.data.fullName,
-            bioText: args.data.bioText,
-            email: args.data.email,
-          },
-        });
-      },
-    });
+    t.crud.createOneUser();
+    // t.crud.updateOneUser()
+    t.crud.deleteOneUser();
+    t.crud.createOneModule();
+    // t.crud.updateOneModule()
+    t.crud.deleteOneModule();
+    t.crud.createOneVersion();
+    // t.crud.updateOneVersion()
+    t.crud.deleteOneVersion();
+    t.crud.createOneTag();
+    // t.crud.updateOneTag()
+    t.crud.deleteOneTag();
   },
 });

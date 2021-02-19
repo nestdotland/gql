@@ -1,21 +1,16 @@
-import { objectType } from "nexus";
+import { queryType } from "nexus";
 
-export const Query = objectType({
-  name: "Query",
+export const Query = queryType({
   definition(t) {
-    t.nonNull.list.nonNull.field("allUsers", {
-      type: "User",
-      resolve: (_parent, _args, context) => {
-        return context.prisma.user.findMany();
-      },
+    t.crud.user();
+    t.crud.users({
+      ordering: true,
+      filtering: true,
     });
-
-    t.nonNull.list.nonNull.field("allModules", {
-      type: "Module",
-      // @ts-ignore
-      resolve: (_parent, _args, context) => {
-        return context.prisma.module.findMany();
-      },
+    t.crud.module();
+    t.crud.modules({
+      ordering: true,
+      filtering: true,
     });
   },
 });

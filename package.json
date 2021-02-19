@@ -10,8 +10,8 @@
     "start": "node dist/server",
     "clean": "rm -rf dist",
     "build": "npm -s run clean && npm -s run generate && tsc",
-    "fmt": "prettier --check .",
-    "fmt:write": "prettier --write .",
+    "fmt": "prettier --check src",
+    "fmt:write": "prettier --write src",
     "seed": "prisma db seed --preview-feature",
     "migrate": "prisma migrate dev --preview-feature --name",
     "generate": "npm -s run generate:prisma && npm -s run generate:nexus",
@@ -24,23 +24,24 @@
     "@types/node": "^14.14.22",
     "faker": "^5.4.0",
     "prettier": "^2.2.1",
-    "prisma": "2.17.0",
+    "prisma": "2.16.0",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.1",
     "typescript": "^4.1.3"
   },
   "prettier": {
-    "singleQuote": true,
+    "singleQuote": false,
     "printWidth": 120
   },
   "engines": {
-    "node": "14"
+    "node": ">=14"
   },
   "dependencies": {
-    "@prisma/client": "^2.17.0",
+    "@prisma/client": "2.16.0",
     "apollo-server": "^2.21.0",
     "graphql": "^15.5.0",
     "graphql-iso-date": "^3.6.1",
-    "nexus": "^1.0.0"
+    "nexus": "^1.0.0",
+    "nexus-plugin-prisma": "^0.30.0"
   }
 }

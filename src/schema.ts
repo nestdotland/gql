@@ -1,31 +1,18 @@
 import { asNexusMethod, makeSchema } from "nexus";
+import { nexusPrisma } from "nexus-plugin-prisma";
 import { GraphQLDateTime } from "graphql-iso-date";
 import { Query } from "./queries";
 import { Mutation } from "./mutations";
-import {
-  File,
-  Hooks,
-  Module,
-  Tag,
-  User,
-  UserCreateInput,
-  Version,
-} from "./object_types";
+import * as types from "./object_types";
 
 export const DateTime = asNexusMethod(GraphQLDateTime, "date");
 
 export const schema = makeSchema({
-  types: [
-    Query,
-    Mutation,
-    File,
-    Hooks,
-    Module,
-    Tag,
-    User,
-    UserCreateInput,
-    Version,
-    DateTime,
+  types: [Query, Mutation, types, DateTime],
+  plugins: [
+    nexusPrisma({
+      experimentalCRUD: true,
+    }),
   ],
   outputs: {
     schema: __dirname + "/../schema.graphql",
