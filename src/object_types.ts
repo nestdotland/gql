@@ -7,6 +7,13 @@ export const User = objectType({
     t.model.fullName();
     t.model.bioText();
     t.model.email();
+    /** Hide access tokens if not authorized
+     * proof of concept */
+    t.model.accessTokens({
+      resolve(user, args, ctx, info, originalResolve) {
+        return ctx.authorized ? originalResolve(user, args, ctx, info) : [];
+      },
+    });
     t.list.field("modules", {
       type: "Module",
       // @ts-ignore
@@ -15,7 +22,13 @@ export const User = objectType({
           .findUnique({
             where: { name: user.name },
           })
-          .modules();
+          .modules({
+            where: {
+              private: context.authorized ? {} : {
+                equals: false,
+              },
+            },
+          });
       },
     });
     t.list.field("contributions", {
@@ -29,6 +42,9 @@ export const User = objectType({
                 contributorName: user.name,
               },
             },
+            private: context.authorized ? {} : {
+              equals: false,
+            },
           },
         });
       },
@@ -41,7 +57,15 @@ export const User = objectType({
           .findUnique({
             where: { name: user.name },
           })
-          .publications();
+          .publications({
+            where: {
+              module: {
+                private: context.authorized ? {} : {
+                  equals: false,
+                },
+              }
+            }
+          });
       },
     });
   },

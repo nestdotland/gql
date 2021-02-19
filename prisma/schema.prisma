@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["nativeTypes"]
 }
 
@@ -12,10 +12,11 @@ datasource db {
 }
 
 model User {
-  name     String  @id @db.VarChar(40)
-  fullName String? @db.VarChar(100)
-  bioText  String?
-  email    String? @unique @db.VarChar(100)
+  name         String   @id @db.VarChar(40)
+  fullName     String?  @db.VarChar(100)
+  bioText      String?
+  email        String?  @unique @db.VarChar(100)
+  accessTokens String[]
 
   modules       Module[]
   contributions ModuleContributors[] @relation("ContributesTo")

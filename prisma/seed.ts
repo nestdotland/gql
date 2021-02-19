@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const MAX_USER_COUNT = 30;
 const MAX_MODULE_COUNT = 5;
-const MAX_VERSION_COUNT = 5;
+// const MAX_VERSION_COUNT = 5;
 
 async function main() {
   console.log("Start seeding ...");
@@ -19,6 +19,7 @@ async function main() {
       fullName: faker.name.findName(firstName, lastName),
       bioText: faker.lorem.paragraph(),
       email: faker.internet.email(firstName, lastName),
+      accessTokens: Array.from(new Array(faker.random.number(5)), () => faker.random.uuid()),
     };
     try {
       await prisma.user.create({
@@ -81,7 +82,7 @@ async function main() {
     }
   }
 
-  const versionData: Prisma.VersionCreateInput[] = [];
+  /* const versionData: Prisma.VersionCreateInput[] = [];
   for (const module of moduleData) {
     for (let i = 0; i < faker.random.number(MAX_VERSION_COUNT); i++) {
       const version: Prisma.VersionCreateInput = {
@@ -115,7 +116,7 @@ async function main() {
         console.debug(version.module.connect);
       }
     }
-  }
+  } */
 
   console.log("Seeding finished.");
 }
