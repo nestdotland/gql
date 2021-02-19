@@ -17,6 +17,7 @@ export async function context({ req }: ExpressContext): Promise<Context> {
   const users = await store.users.findOrCreate({ where: { email } });
   const user = users && users[0] || null; */
   return {
+    // WIP
     authorized: false,
     prisma
   };
