@@ -14,26 +14,21 @@ export const User = objectType({
         return ctx.authorized ? originalResolve(user, args, ctx, info) : [];
       },
     });
-    t.list.field("modules", {
-      type: "Module",
-      // @ts-ignore
-      resolve(user, _, context) {
-        return context.prisma.user
-          .findUnique({
-            where: { name: user.name },
-          })
-          .modules({
-            where: {
-              private: context.authorized ? {} : {
-                equals: false,
-              },
-            },
-          });
+    t.model.modules({
+      ordering: true,
+      filtering: true,
+      resolve(user, args, ctx, info, originalResolve) {
+        args.where ||= {};
+        args.where.private = ctx.authorized
+          ? {}
+          : {
+              equals: false,
+            };
+        return originalResolve(user, args, ctx, info);
       },
     });
     t.list.field("contributions", {
       type: "Module",
-      // @ts-ignore
       resolve(user, _, context) {
         return context.prisma.module.findMany({
           where: {
@@ -42,31 +37,18 @@ export const User = objectType({
                 contributorName: user.name,
               },
             },
-            private: context.authorized ? {} : {
-              equals: false,
-            },
+            private: context.authorized
+              ? {}
+              : {
+                  equals: false,
+                },
           },
         });
       },
     });
-    t.list.field("publications", {
-      type: "Version",
-      // @ts-ignore
-      resolve(user, _, context) {
-        return context.prisma.user
-          .findUnique({
-            where: { name: user.name },
-          })
-          .publications({
-            where: {
-              module: {
-                private: context.authorized ? {} : {
-                  equals: false,
-                },
-              }
-            }
-          });
-      },
+    t.model.publications({
+      ordering: true,
+      filtering: true,
     });
   },
 });
@@ -91,25 +73,9 @@ export const Module = objectType({
     t.model.keywords();
     t.model.logo();
     t.model.lastSync();
-    t.field("author", {
-      type: "User",
-      // @ts-ignore
-      resolve(module, _, context) {
-        return context.prisma.module
-          .findUnique({
-            where: {
-              authorName_name: {
-                authorName: module.authorName,
-                name: module.name,
-              },
-            },
-          })
-          .author();
-      },
-    });
+    t.model.author();
     t.list.field("contributors", {
       type: "User",
-      // @ts-ignore
       resolve(module, _, context) {
         return context.prisma.user.findMany({
           where: {
@@ -123,70 +89,16 @@ export const Module = objectType({
         });
       },
     });
-    t.list.field("tags", {
-      type: "Tag",
-      // @ts-ignore
-      resolve(module, _, context) {
-        return context.prisma.module
-          .findUnique({
-            where: {
-              authorName_name: {
-                authorName: module.authorName,
-                name: module.name,
-              },
-            },
-          })
-          .tags();
-      },
+    t.model.tags({
+      ordering: true,
+      filtering: true,
     });
-    t.list.field("versions", {
-      type: "Version",
-      // @ts-ignore
-      resolve(module, _, context) {
-        return context.prisma.module
-          .findUnique({
-            where: {
-              authorName_name: {
-                authorName: module.authorName,
-                name: module.name,
-              },
-            },
-          })
-          .versions();
-      },
+    t.model.versions({
+      ordering: true,
+      filtering: true,
     });
-    t.field("latest", {
-      type: "Version",
-      // @ts-ignore
-      resolve(module, _, context) {
-        return context.prisma.module
-          .findUnique({
-            where: {
-              authorName_name: {
-                authorName: module.authorName,
-                name: module.name,
-              },
-            },
-          })
-          .latest();
-      },
-    });
-    t.field("hooks", {
-      type: "Hooks",
-      // @ts-ignore
-      resolve(module, _, context) {
-        return context.prisma.module
-          .findUnique({
-            where: {
-              authorName_name: {
-                authorName: module.authorName,
-                name: module.name,
-              },
-            },
-          })
-          .hooks();
-      },
-    });
+    t.model.latest();
+    t.model.hooks();
   },
 });
 
@@ -209,90 +121,12 @@ export const Version = objectType({
     t.model.vulnerable();
     t.model.supportedDeno();
     t.model.dependencies();
-    t.nonNull.field("module", {
-      type: "Module",
-      // @ts-ignore
-      resolve(version, _, context) {
-        return context.prisma.version
-          .findUnique({
-            where: {
-              authorName_moduleName_version: {
-                authorName: version.authorName,
-                moduleName: version.moduleName,
-                version: version.version,
-              },
-            },
-          })
-          .module();
-      },
-    });
-    t.model.authorName();
-    t.model.moduleName();
-    t.nonNull.field("publisher", {
-      type: "User",
-      // @ts-ignore
-      resolve(version, _, context) {
-        return context.prisma.version
-          .findUnique({
-            where: {
-              authorName_moduleName_version: {
-                authorName: version.authorName,
-                moduleName: version.moduleName,
-                version: version.version,
-              },
-            },
-          })
-          .publisher();
-      },
-    });
-    t.field("tag", {
-      type: "Tag",
-      resolve(version, _, context) {
-        return context.prisma.version
-          .findUnique({
-            where: {
-              authorName_moduleName_version: {
-                authorName: version.authorName,
-                moduleName: version.moduleName,
-                version: version.version,
-              },
-            },
-          })
-          .tag();
-      },
-    });
-    t.field("latestOf", {
-      type: "Module",
-      // @ts-ignore
-      resolve(version, _, context) {
-        return context.prisma.version
-          .findUnique({
-            where: {
-              authorName_moduleName_version: {
-                authorName: version.authorName,
-                moduleName: version.moduleName,
-                version: version.version,
-              },
-            },
-          })
-          .latestOf();
-      },
-    });
-    t.list.field("files", {
-      type: "File",
-      resolve(version, _, context) {
-        return context.prisma.version
-          .findUnique({
-            where: {
-              authorName_moduleName_version: {
-                authorName: version.authorName,
-                moduleName: version.moduleName,
-                version: version.version,
-              },
-            },
-          })
-          .files();
-      },
+    t.model.module();
+    t.model.publisher();
+    t.model.tag();
+    t.model.files({
+      ordering: true,
+      filtering: true,
     });
   },
 });
@@ -301,45 +135,8 @@ export const Tag = objectType({
   name: "Tag",
   definition(t) {
     t.model.name();
-    t.nonNull.field("module", {
-      type: "Module",
-      // @ts-ignore
-      resolve(tag, _, context) {
-        return context.prisma.tag
-          .findUnique({
-            where: {
-              authorName_moduleName_versionTag_name: {
-                authorName: tag.authorName,
-                moduleName: tag.moduleName,
-                versionTag: tag.versionTag,
-                name: tag.name,
-              },
-            },
-          })
-          .module();
-      },
-    });
-    t.nonNull.field("version", {
-      type: "Version",
-      // @ts-ignore
-      resolve(tag, _, context) {
-        return context.prisma.tag
-          .findUnique({
-            where: {
-              authorName_moduleName_versionTag_name: {
-                authorName: tag.authorName,
-                moduleName: tag.moduleName,
-                versionTag: tag.versionTag,
-                name: tag.name,
-              },
-            },
-          })
-          .version();
-      },
-    });
-    t.model.authorName();
-    t.model.moduleName();
-    t.model.versionTag();
+    t.model.module();
+    t.model.version();
   },
 });
 
@@ -351,26 +148,14 @@ export const File = objectType({
     t.model.type();
     t.model.hash();
     t.model.txID();
-    t.nonNull.field("version", {
-      type: "Version",
-      // @ts-ignore
-      resolve(file, _, context) {
-        return context.prisma.file
-          .findUnique({
-            where: {
-              authorName_moduleName_versionTag_path: {
-                authorName: file.authorName,
-                moduleName: file.moduleName,
-                versionTag: file.versionTag,
-                path: file.path,
-              },
-            },
-          })
-          .version();
-      },
-    });
-    t.model.authorName();
-    t.model.moduleName();
-    t.model.versionTag();
+    t.model.version();
+  },
+});
+
+export const ModuleContributors = objectType({
+  name: "ModuleContributors",
+  definition(t) {
+    t.model.contributor();
+    t.model.module();
   },
 });

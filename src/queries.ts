@@ -13,12 +13,12 @@ export const Query = queryType({
       ordering: true,
       filtering: true,
       resolve(root, args, ctx, info, originalResolve) {
-        args.where = {
-          ...args.where,
-          private: ctx.authorized ? {} : {
-            equals: false,
-          },
-        };
+        args.where ||= {};
+        args.where.private = ctx.authorized
+          ? {}
+          : {
+              equals: false,
+            };
         return originalResolve(root, args, ctx, info);
       },
     });

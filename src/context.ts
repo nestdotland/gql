@@ -3,13 +3,13 @@ import { ExpressContext } from "apollo-server-express";
 
 export interface Context {
   prisma: PrismaClient;
-  authorized: boolean
+  authorized: boolean;
 }
 
 const prisma = new PrismaClient();
 
 export async function context({ req }: ExpressContext): Promise<Context> {
-/*   // simple auth check on every request
+  /*   // simple auth check on every request
   const auth = req.headers && req.headers.authorization || '';
   const email = Buffer.from(auth, 'base64').toString('ascii');
   if (!isEmail.validate(email)) return { user: null };
@@ -19,6 +19,6 @@ export async function context({ req }: ExpressContext): Promise<Context> {
   return {
     // WIP
     authorized: false,
-    prisma
+    prisma,
   };
 }
