@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -44,10 +44,10 @@ model Module {
   contributors     ModuleContributors[] @relation("Contributors")
   tags             Tag[]
   versions         Version[]            @relation("Versions")
-  latest           Version?             @relation(fields: [latestTag, latestAuthorName, latestModuleName], references: [version, authorName, moduleName])
-  latestTag        String?              @db.VarChar(40)
+  latest           Version?             @relation(fields: [latestAuthorName, latestModuleName, latestTag], references: [authorName, moduleName, version])
   latestAuthorName String?              @db.VarChar(40)
   latestModuleName String?              @db.VarChar(40)
+  latestTag        String?              @db.VarChar(40)
   hooks            Hooks?
 
   @@id([authorName, name])
@@ -59,7 +59,7 @@ model Hooks {
   prepublish  String?
   postpublish String?
 
-  module     Module @relation(fields: [moduleName, authorName], references: [name, authorName])
+  module     Module @relation(fields: [authorName, moduleName], references: [authorName, name])
   authorName String @db.VarChar(40)
   moduleName String @db.VarChar(40)
 
@@ -74,7 +74,7 @@ model Version {
   supportedDeno String[]
   dependencies  String[]
 
-  module        Module  @relation("Versions", fields: [moduleName, authorName], references: [name, authorName])
+  module        Module  @relation("Versions", fields: [authorName, moduleName], references: [authorName, name])
   authorName    String  @db.VarChar(40)
   moduleName    String  @db.VarChar(40)
   publisher     User    @relation(fields: [publisherName], references: [name])
@@ -89,8 +89,8 @@ model Version {
 model Tag {
   name String @db.VarChar(40)
 
-  module     Module  @relation(fields: [moduleName, authorName], references: [name, authorName])
-  version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
+  module     Module  @relation(fields: [authorName, moduleName], references: [authorName, name])
+  version    Version @relation(fields: [authorName, moduleName, versionTag], references: [authorName, moduleName, version])
   authorName String  @db.VarChar(40)
   moduleName String  @db.VarChar(40)
   versionTag String  @db.VarChar(40)
@@ -105,7 +105,7 @@ model File {
   hash String @db.VarChar(1000) // to be adapted according to the hash method
   txID String @db.VarChar(1000) // to be adapted according to arweave
 
-  version    Version @relation(fields: [versionTag, authorName, moduleName], references: [version, authorName, moduleName])
+  version    Version @relation(fields: [authorName, moduleName, versionTag], references: [authorName, moduleName, version])
   authorName String  @db.VarChar(40)
   moduleName String  @db.VarChar(40)
   versionTag String  @db.VarChar(40)

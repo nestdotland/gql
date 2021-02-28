@@ -18,7 +18,7 @@ export const User = objectType({
       ordering: true,
       filtering: true,
       resolve(user, args, ctx, info, originalResolve) {
-        args.where ||= {};
+        args.where ??= {};
         args.where.private = ctx.authorized
           ? {}
           : {
@@ -57,7 +57,6 @@ export const Module = objectType({
   name: "Module",
   definition(t) {
     t.model.name();
-    t.model.authorName();
     t.model.fullName();
     t.model.description();
     t.model.homepage();
@@ -74,6 +73,8 @@ export const Module = objectType({
     t.model.logo();
     t.model.lastSync();
     t.model.author();
+    t.model.authorName(); // TODO: remove this field
+    // t.model.contributors() // FIXME: doesn't work
     t.list.field("contributors", {
       type: "User",
       resolve(module, _, context) {
