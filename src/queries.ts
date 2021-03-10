@@ -7,34 +7,64 @@ export const Query = queryType({
       ordering: true,
       filtering: true,
     });
-    // TODO: 404 if private module
     t.crud.module();
     t.crud.modules({
       ordering: true,
       filtering: true,
       resolve(root, args, ctx, info, originalResolve) {
-        args.where ??= {};
-        args.where.private = ctx.authorized
-          ? {}
-          : {
-              equals: false,
-            };
+        args.where = {
+          ...args.where,
+          OR: [
+            {
+              private: {
+                equals: false,
+              },
+            },
+            {
+              author: {
+                accessTokens: {
+                  some: {
+                    AND: [{ moduleScope: { has: "READ" } }, { token: { equals: ctx.accessToken.token } }],
+                  },
+                },
+              },
+              private: {
+                equals: true,
+              },
+            },
+          ],
+        };
         return originalResolve(root, args, ctx, info);
       },
     });
-    // TODO: 404 if private module
     t.crud.version();
     t.crud.versions({
       ordering: true,
       filtering: true,
       resolve(root, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.module ??= {};
-        args.where.module.private = ctx.authorized
-          ? {}
-          : {
-              equals: false,
-            };
+        args.where.module = {
+          ...args.where.module,
+          OR: [
+            {
+              private: {
+                equals: false,
+              },
+            },
+            {
+              author: {
+                accessTokens: {
+                  some: {
+                    AND: [{ moduleScope: { has: "READ" } }, { token: { equals: ctx.accessToken.token } }],
+                  },
+                },
+              },
+              private: {
+                equals: true,
+              },
+            },
+          ],
+        };
         return originalResolve(root, args, ctx, info);
       },
     });

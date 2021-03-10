@@ -28,7 +28,6 @@ export const User = objectType({
             : {
                 equals: false,
               };
-
         return originalResolve(user, args, ctx, info);
       },
     });
