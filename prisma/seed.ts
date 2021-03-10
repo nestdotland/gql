@@ -23,10 +23,10 @@ async function main() {
       fullName: maybe(faker.name.findName(firstName, lastName)),
       bioText: maybe(faker.lorem.paragraph()),
       email: maybe(faker.internet.email(firstName, lastName)),
-      accessTokens: maybe(Array.from(
+      /* accessTokens: maybe(Array.from(
         new Array(faker.random.number(5)),
         () => faker.random.uuid(),
-      )),
+      )), */
     };
     try {
       await prisma.user.create({

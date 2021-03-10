@@ -1,24 +1,28 @@
-import { PrismaClient } from "@prisma/client";
-import { ExpressContext } from "apollo-server-express";
+import { AccessToken, PrismaClient } from "@prisma/client";
+import { ExpressContext, AuthenticationError, SyntaxError } from "apollo-server-express";
 
 export interface Context {
   prisma: PrismaClient;
-  authorized: boolean;
+  accessToken: AccessToken;
 }
 
 const prisma = new PrismaClient();
 
 export async function context({ req }: ExpressContext): Promise<Context> {
-  /*   // simple auth check on every request
-  const auth = req.headers && req.headers.authorization || '';
-  const email = Buffer.from(auth, 'base64').toString('ascii');
-  if (!isEmail.validate(email)) return { user: null };
-  // find a user by their email
-  const users = await store.users.findOrCreate({ where: { email } });
-  const user = users && users[0] || null; */
+  // simple auth check on every request
+  const token = req.headers && req.headers.token;
+
+  if (token === undefined)
+    throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
+  if (Array.isArray(token)) throw new SyntaxError("Received an array of tokens. Please provide a string.");
+
+  const accessToken = await prisma.accessToken.findUnique({
+    where: { token },
+  });
+
+  if (accessToken === null) throw new AuthenticationError("The given token is invalid.");
   return {
-    // WIP
-    authorized: false,
+    accessToken,
     prisma,
   };
 }

@@ -11,7 +11,6 @@ datasource db {
 }
 
 enum Scope {
-  NONE
   READ
   WRITE
 }
@@ -30,11 +29,11 @@ model User {
 
 model AccessToken {
   name        String
-  token       String
+  token       String   @unique
   dateCreated DateTime @default(now())
 
-  userScope   Scope @default(NONE)
-  moduleScope Scope @default(NONE)
+  userScope   Scope[]
+  moduleScope Scope[]
 
   owner     User   @relation(fields: [ownerName], references: [name])
   ownerName String @db.VarChar(40)

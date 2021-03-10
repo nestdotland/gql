@@ -7,11 +7,14 @@ export const User = objectType({
     t.model.fullName();
     t.model.bioText();
     t.model.email();
-    /** Hide access tokens if not authorized
-     * proof of concept */
+    /** Hide access tokens if not authorized */
     t.model.accessTokens({
+      ordering: true,
+      filtering: true,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.authorized ? originalResolve(user, args, ctx, info) : [];
+        return ctx.accessToken.ownerName === user.name && ctx.accessToken.userScope.includes("READ")
+          ? originalResolve(user, args, ctx, info)
+          : [];
       },
     });
     t.model.modules({
@@ -19,29 +22,32 @@ export const User = objectType({
       filtering: true,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = ctx.authorized
-          ? {}
-          : {
-              equals: false,
-            };
+        args.where.private =
+          ctx.accessToken.ownerName === user.name && ctx.accessToken.moduleScope.includes("READ")
+            ? {}
+            : {
+                equals: false,
+              };
+
         return originalResolve(user, args, ctx, info);
       },
     });
     t.list.field("contributions", {
       type: "Module",
-      resolve(user, _, context) {
-        return context.prisma.module.findMany({
+      resolve(user, _, ctx) {
+        return ctx.prisma.module.findMany({
           where: {
             contributors: {
               some: {
                 contributorName: user.name,
               },
             },
-            private: context.authorized
-              ? {}
-              : {
-                  equals: false,
-                },
+            private:
+              ctx.accessToken.ownerName === user.name && ctx.accessToken.moduleScope.includes("READ")
+                ? {}
+                : {
+                    equals: false,
+                  },
           },
         });
       },
@@ -150,6 +156,17 @@ export const File = objectType({
     t.model.hash();
     t.model.txID();
     t.model.version();
+  },
+});
+
+export const AccessToken = objectType({
+  name: "AccessToken",
+  definition(t) {
+    t.model.name();
+    t.model.owner();
+    t.model.token();
+    t.model.userScope();
+    t.model.moduleScope();
   },
 });
 
