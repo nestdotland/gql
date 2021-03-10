@@ -10,16 +10,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  name         String   @id @db.VarChar(40)
-  fullName     String?  @db.VarChar(100)
-  bioText      String?
-  email        String?  @unique @db.VarChar(100)
-  accessTokens String[]
+enum Scope {
+  NONE
+  READ
+  WRITE
+}
 
+model User {
+  name     String  @id @db.VarChar(40)
+  fullName String? @db.VarChar(100)
+  bioText  String?
+  email    String? @unique @db.VarChar(100)
+
+  accessTokens  AccessToken[]
   modules       Module[]
   contributions ModuleContributors[] @relation("ContributesTo")
-  publications  Version[]
+  publications  Version[]            @relation("Publisher")
+}
+
+model AccessToken {
+  name        String
+  token       String
+  dateCreated DateTime @default(now())
+
+  userScope   Scope @default(NONE)
+  moduleScope Scope @default(NONE)
+
+  owner     User   @relation(fields: [ownerName], references: [name])
+  ownerName String @db.VarChar(40)
+
+  @@id([name, ownerName])
 }
 
 model Module {
@@ -77,10 +97,10 @@ model Version {
   module        Module  @relation("Versions", fields: [authorName, moduleName], references: [authorName, name])
   authorName    String  @db.VarChar(40)
   moduleName    String  @db.VarChar(40)
-  publisher     User    @relation(fields: [publisherName], references: [name])
+  publisher     User    @relation("Publisher", fields: [publisherName], references: [name])
   publisherName String  @db.VarChar(40)
   tag           Tag?
-  latestOf      Module? // relation 1..0 1..0
+  latestOf      Module?
   files         File[]
 
   @@id([authorName, moduleName, version])
