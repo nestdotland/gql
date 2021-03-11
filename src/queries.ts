@@ -146,5 +146,7 @@ export const Query = queryType({
         return originalResolve(root, args, ctx, info);
       },
     });
+    
+    // TODO: arweave URL to module / version
   },
 });

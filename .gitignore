@@ -8,3 +8,5 @@ connect.sh
 prisma/migrations
 schema.graphql
 src/generated
+
+foo.js
