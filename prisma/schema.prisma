@@ -10,11 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Scope {
-  READ
-  WRITE
-}
-
 model User {
   name     String  @id @db.VarChar(40)
   fullName String? @db.VarChar(100)
@@ -25,20 +20,6 @@ model User {
   modules       Module[]
   contributions ModuleContributors[] @relation("ContributesTo")
   publications  Version[]            @relation("Publisher")
-}
-
-model AccessToken {
-  name        String
-  token       String   @unique
-  dateCreated DateTime @default(now())
-
-  userScope   Scope[]
-  moduleScope Scope[]
-
-  owner     User   @relation(fields: [ownerName], references: [name])
-  ownerName String @db.VarChar(40)
-
-  @@id([name, ownerName])
 }
 
 model Module {
@@ -52,9 +33,9 @@ model Module {
   private     Boolean? @default(false)
   unlisted    Boolean? @default(false)
   ignore      String
+  keywords    String[]
   main        String?
   bin         String[]
-  keywords    String[]
   logo        String?
   lastSync    DateTime @updatedAt
 
@@ -92,6 +73,9 @@ model Version {
   vulnerable    Boolean? @default(false)
   supportedDeno String[]
   dependencies  String[]
+  main          String?
+  bin           String[]
+  logo          String?
 
   module        Module  @relation("Versions", fields: [authorName, moduleName], references: [authorName, name])
   authorName    String  @db.VarChar(40)
@@ -121,8 +105,8 @@ model File {
   name String @db.VarChar(100)
   path String
   type String @db.VarChar(100)
-  hash String @db.VarChar(1000) // to be adapted according to the hash method
-  txID String @db.VarChar(1000) // to be adapted according to arweave
+  hash String // TODO: set length
+  txID String // TODO: set length
 
   version    Version @relation(fields: [authorName, moduleName, versionTag], references: [authorName, moduleName, version])
   authorName String  @db.VarChar(40)
@@ -132,7 +116,28 @@ model File {
   @@id([authorName, moduleName, versionTag, path])
 }
 
+model AccessToken {
+  name        String
+  token       String   @unique
+  dateCreated DateTime @default(now())
+
+  readAccessTokens         Boolean @default(false)
+  writeAccessTokens        Boolean @default(false)
+  readPrivateModules       Boolean @default(false)
+  readPrivateContributions Boolean @default(false)
+
+  owner     User   @relation(fields: [ownerName], references: [name])
+  ownerName String @db.VarChar(40)
+
+  @@id([name, ownerName])
+}
+
 model ModuleContributors {
+  readModule  Boolean @default(false)
+  writeModule Boolean @default(false)
+  readConfig  Boolean @default(false)
+  writeConfig Boolean @default(false)
+
   contributor     User   @relation("ContributesTo", fields: [contributorName], references: [name])
   contributorName String @db.VarChar(40)
   module          Module @relation("Contributors", fields: [authorName, moduleName], references: [authorName, name])

@@ -55,16 +55,16 @@ async function main() {
         private: maybe(faker.random.boolean()),
         unlisted: maybe(faker.random.boolean()),
         ignore: `.${faker.system.fileExt(faker.system.mimeType())}`,
-        main: maybe(faker.system.filePath()),
-        bin: maybe(Array.from(
-          new Array(faker.random.number(5)),
-          () => faker.system.filePath(),
-        )),
         keywords: maybe(Array.from(
           new Array(faker.random.number(5)),
           () => faker.random.word(),
         )),
         logo: maybe(faker.system.filePath()),
+        main: maybe(faker.system.filePath()),
+        bin: maybe(Array.from(
+          new Array(faker.random.number(5)),
+          () => faker.system.filePath(),
+        )),
         author: {
           connect: {
             name: user,
@@ -166,6 +166,12 @@ async function main() {
           maybe(faker.fake("<={{system.semver}}")),
           maybe(faker.fake(">={{system.semver}}")),
         ].filter((element) => element) as string[]),
+        logo: maybe(faker.system.filePath()),
+        main: maybe(faker.system.filePath()),
+        bin: maybe(Array.from(
+          new Array(faker.random.number(5)),
+          () => faker.system.filePath(),
+        )),
         module: {
           connect: {
             authorName_name: {

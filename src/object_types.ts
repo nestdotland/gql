@@ -1,5 +1,15 @@
 import { objectType } from "nexus";
 
+export const modelOptions = {
+  pagination: true,
+  ordering: true,
+  filtering: true,
+};
+
+function equalsFalse(bool: boolean) {
+  return bool ? {} : { equals: false };
+}
+
 export const User = objectType({
   name: "User",
   definition(t) {
@@ -9,51 +19,31 @@ export const User = objectType({
     t.model.email();
     /** Hide access tokens if not authorized */
     t.model.accessTokens({
-      ordering: true,
-      filtering: true,
+      ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.accessToken.ownerName === user.name && ctx.accessToken.userScope.includes("READ")
+        return ctx.accessToken.ownerName === user.name && ctx.accessToken.readAccessTokens
           ? originalResolve(user, args, ctx, info)
           : [];
       },
     });
     t.model.modules({
-      ordering: true,
-      filtering: true,
+      ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private =
-          ctx.accessToken.ownerName === user.name && ctx.accessToken.moduleScope.includes("READ")
-            ? {}
-            : {
-                equals: false,
-              };
+        args.where.private = equalsFalse(ctx.accessToken.ownerName === user.name && ctx.accessToken.readPrivateModules);
         return originalResolve(user, args, ctx, info);
       },
     });
-    t.list.field("contributions", {
-      type: "Module",
-      resolve(user, _, ctx) {
-        return ctx.prisma.module.findMany({
-          where: {
-            contributors: {
-              some: {
-                contributorName: user.name,
-              },
-            },
-            private:
-              ctx.accessToken.ownerName === user.name && ctx.accessToken.moduleScope.includes("READ")
-                ? {}
-                : {
-                    equals: false,
-                  },
-          },
-        });
+    t.model.contributions({
+      ...modelOptions,
+      resolve(user, args, ctx, info, originalResolve) {
+        args.where ??= {};
+        args.where.module ??= {};
+        args.where.module.private = equalsFalse(
+          ctx.accessToken.ownerName === user.name && ctx.accessToken.readPrivateContributions
+        );
+        return originalResolve(user, args, ctx, info);
       },
-    });
-    t.model.publications({
-      ordering: true,
-      filtering: true,
     });
   },
 });
@@ -72,37 +62,15 @@ export const Module = objectType({
     t.model.private();
     t.model.unlisted();
     t.model.ignore();
+    t.model.keywords();
     t.model.main();
     t.model.bin();
-    t.model.keywords();
     t.model.logo();
     t.model.lastSync();
     t.model.author();
-    t.model.authorName(); // TODO: remove this field
-    // t.model.contributors() // FIXME: doesn't work
-    t.list.field("contributors", {
-      type: "User",
-      resolve(module, _, context) {
-        return context.prisma.user.findMany({
-          where: {
-            contributions: {
-              some: {
-                authorName: module.authorName,
-                moduleName: module.name,
-              },
-            },
-          },
-        });
-      },
-    });
-    t.model.tags({
-      ordering: true,
-      filtering: true,
-    });
-    t.model.versions({
-      ordering: true,
-      filtering: true,
-    });
+    t.model.contributors(modelOptions);
+    t.model.tags(modelOptions);
+    t.model.versions(modelOptions);
     t.model.latest();
     t.model.hooks();
   },
@@ -127,13 +95,13 @@ export const Version = objectType({
     t.model.vulnerable();
     t.model.supportedDeno();
     t.model.dependencies();
+    t.model.main();
+    t.model.bin();
+    t.model.logo();
     t.model.module();
     t.model.publisher();
     t.model.tag();
-    t.model.files({
-      ordering: true,
-      filtering: true,
-    });
+    t.model.files(modelOptions);
   },
 });
 
@@ -164,8 +132,10 @@ export const AccessToken = objectType({
     t.model.name();
     t.model.owner();
     t.model.token();
-    t.model.userScope();
-    t.model.moduleScope();
+    t.model.readAccessTokens();
+    t.model.writeAccessTokens();
+    t.model.readPrivateModules();
+    t.model.readPrivateContributions();
   },
 });
 
@@ -174,5 +144,9 @@ export const ModuleContributors = objectType({
   definition(t) {
     t.model.contributor();
     t.model.module();
+    t.model.readConfig();
+    t.model.writeConfig();
+    t.model.readModule();
+    t.model.writeModule();
   },
 });
