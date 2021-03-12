@@ -118,7 +118,7 @@ model File {
 
 model AccessToken {
   name        String
-  token       String   @unique
+  tokenHash   String   @unique
   dateCreated DateTime @default(now())
 
   readAccessTokens         Boolean @default(false)

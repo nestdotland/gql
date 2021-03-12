@@ -64,7 +64,7 @@ export const Query = queryType({
               author: {
                 accessTokens: {
                   some: {
-                    token: { equals: ctx.accessToken.token },
+                    tokenHash: { equals: ctx.accessToken.tokenHash },
                     readPrivateModules: { equals: true },
                   },
                 },
@@ -135,7 +135,7 @@ export const Query = queryType({
               author: {
                 accessTokens: {
                   some: {
-                    token: { equals: ctx.accessToken.token },
+                    tokenHash: { equals: ctx.accessToken.tokenHash },
                     readPrivateModules: { equals: true },
                   },
                 },
@@ -144,6 +144,18 @@ export const Query = queryType({
           ],
         };
         return originalResolve(root, args, ctx, info);
+      },
+    });
+
+    t.nonNull.field("profile", {
+      type: "User",
+      async resolve(_parent, _args, ctx) {
+        const profile = await ctx.prisma.user.findUnique({
+          where: {
+            name: ctx.accessToken.ownerName,
+          },
+        });
+        return profile!; // user is non null
       },
     });
 

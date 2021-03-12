@@ -1,4 +1,4 @@
-import { objectType } from "nexus";
+import { inputObjectType, objectType } from "nexus";
 
 export const modelOptions = {
   pagination: true,
@@ -131,7 +131,9 @@ export const AccessToken = objectType({
   definition(t) {
     t.model.name();
     t.model.owner();
-    t.model.token();
+    t.string("token", {
+      description: "Only available when creating a token",
+    });
     t.model.readAccessTokens();
     t.model.writeAccessTokens();
     t.model.readPrivateModules();
@@ -148,5 +150,36 @@ export const ModuleContributors = objectType({
     t.model.writeConfig();
     t.model.readModule();
     t.model.writeModule();
+  },
+});
+
+export const ProfileUpdateInput = inputObjectType({
+  name: "ProfileUpdateInput",
+  definition(t) {
+    t.string("fullName");
+    t.string("bioText");
+    t.string("email");
+  },
+});
+
+export const AccessTokenCreateInput = inputObjectType({
+  name: "AccessTokenCreateInput",
+  definition(t) {
+    t.nonNull.string("name");
+    t.boolean("readAccessTokens");
+    t.boolean("writeAccessTokens");
+    t.boolean("readPrivateModules");
+    t.boolean("readPrivateContributions");
+  },
+});
+
+export const AccessTokenUpdateInput = inputObjectType({
+  name: "AccessTokenUpdateInput",
+  definition(t) {
+    t.string("name");
+    t.boolean("readAccessTokens");
+    t.boolean("writeAccessTokens");
+    t.boolean("readPrivateModules");
+    t.boolean("readPrivateContributions");
   },
 });

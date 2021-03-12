@@ -22,7 +22,7 @@ export async function context({ req }: ExpressContext): Promise<Context> {
   if (Array.isArray(token)) throw new SyntaxError("Received an array of tokens. Please provide a string.");
 
   const accessToken = await prisma.accessToken.findUnique({
-    where: { token: crypto.createHmac("sha256", pepper).update(token).digest("base64") },
+    where: { tokenHash: crypto.createHmac("sha256", pepper).update(token).digest("base64") },
   });
 
   if (accessToken === null) throw new AuthenticationError("The given token is invalid.");
