@@ -18,7 +18,7 @@ model User {
 
   accessTokens  AccessToken[]
   modules       Module[]
-  contributions ModuleContributors[] @relation("ContributesTo")
+  contributions ModuleContributor[] @relation("ContributesTo")
   publications  Version[]            @relation("Publisher")
 }
 
@@ -32,7 +32,7 @@ model Module {
   license     String?  @default("UNKNOWN")
   private     Boolean? @default(false)
   unlisted    Boolean? @default(false)
-  ignore      String
+  ignore      String   @default(".*")
   keywords    String[]
   main        String?
   bin         String[]
@@ -41,7 +41,7 @@ model Module {
 
   author           User                 @relation(fields: [authorName], references: [name])
   authorName       String               @db.VarChar(40)
-  contributors     ModuleContributors[] @relation("Contributors")
+  contributors     ModuleContributor[] @relation("Contributors")
   tags             Tag[]
   versions         Version[]            @relation("Versions")
   latest           Version?             @relation(fields: [latestAuthorName, latestModuleName, latestTag], references: [authorName, moduleName, version])
@@ -98,7 +98,7 @@ model Tag {
   moduleName String  @db.VarChar(40)
   versionTag String  @db.VarChar(40)
 
-  @@id([authorName, moduleName, versionTag, name])
+  @@id([authorName, moduleName, name])
 }
 
 model File {
@@ -117,8 +117,8 @@ model File {
 }
 
 model AccessToken {
-  name        String
-  tokenHash   String   @unique
+  name        String   @db.VarChar(40)
+  tokenHash   String   @unique @db.VarChar(48)
   dateCreated DateTime @default(now())
 
   readAccessTokens         Boolean @default(false)
@@ -132,7 +132,7 @@ model AccessToken {
   @@id([name, ownerName])
 }
 
-model ModuleContributors {
+model ModuleContributor {
   readModule  Boolean @default(false)
   writeModule Boolean @default(false)
   readConfig  Boolean @default(false)
