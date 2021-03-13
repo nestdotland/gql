@@ -1,3 +1,4 @@
+import type { Permission } from "@prisma/client";
 import { objectType } from "nexus";
 
 export const modelOptions = {
@@ -8,6 +9,10 @@ export const modelOptions = {
 
 function equalsFalse(bool: boolean) {
   return bool ? {} : { equals: false };
+}
+
+function readAccess(permission: Permission): boolean {
+  return permission === "READ" || permission === "READ_WRITE";
 }
 
 export const User = objectType({
@@ -21,7 +26,7 @@ export const User = objectType({
     t.model.accessTokens({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.accessToken.ownerName === user.name && ctx.accessToken.readAccessTokens
+        return ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.accessTokens)
           ? originalResolve(user, args, ctx, info)
           : [];
       },
@@ -30,7 +35,9 @@ export const User = objectType({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = equalsFalse(ctx.accessToken.ownerName === user.name && ctx.accessToken.readPrivateModules);
+        args.where.private = equalsFalse(
+          ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.privateConfigs)
+        );
         return originalResolve(user, args, ctx, info);
       },
     });
@@ -40,7 +47,7 @@ export const User = objectType({
         args.where ??= {};
         args.where.module ??= {};
         args.where.module.private = equalsFalse(
-          ctx.accessToken.ownerName === user.name && ctx.accessToken.readPrivateContributions
+          ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.privateContributions)
         );
         return originalResolve(user, args, ctx, info);
       },
@@ -134,10 +141,13 @@ export const AccessToken = objectType({
     t.string("token", {
       description: "Only available when creating a token",
     });
-    t.model.readAccessTokens();
-    t.model.writeAccessTokens();
-    t.model.readPrivateModules();
-    t.model.readPrivateContributions();
+    // Permissions
+    t.model.accessTokens();
+    t.model.versions();
+    t.model.configs();
+    t.model.privateVersions();
+    t.model.privateConfigs();
+    t.model.privateContributions();
   },
 });
 
@@ -146,9 +156,9 @@ export const ModuleContributor = objectType({
   definition(t) {
     t.model.contributor();
     t.model.module();
-    t.model.readConfig();
-    t.model.writeConfig();
-    t.model.readModule();
-    t.model.writeModule();
+    // Permissions
+    t.model.version();
+    t.model.config();
+    t.model.contributors();
   },
 });

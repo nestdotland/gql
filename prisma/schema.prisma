@@ -19,7 +19,7 @@ model User {
   accessTokens  AccessToken[]
   modules       Module[]
   contributions ModuleContributor[] @relation("ContributesTo")
-  publications  Version[]            @relation("Publisher")
+  publications  Version[]           @relation("Publisher")
 }
 
 model Module {
@@ -39,15 +39,15 @@ model Module {
   logo        String?
   lastSync    DateTime @updatedAt
 
-  author           User                 @relation(fields: [authorName], references: [name])
-  authorName       String               @db.VarChar(40)
+  author           User                @relation(fields: [authorName], references: [name])
+  authorName       String              @db.VarChar(40)
   contributors     ModuleContributor[] @relation("Contributors")
   tags             Tag[]
-  versions         Version[]            @relation("Versions")
-  latest           Version?             @relation(fields: [latestAuthorName, latestModuleName, latestTag], references: [authorName, moduleName, version])
-  latestAuthorName String?              @db.VarChar(40)
-  latestModuleName String?              @db.VarChar(40)
-  latestTag        String?              @db.VarChar(40)
+  versions         Version[]           @relation("Versions")
+  latest           Version?            @relation(fields: [latestAuthorName, latestModuleName, latestTag], references: [authorName, moduleName, version])
+  latestAuthorName String?             @db.VarChar(40)
+  latestModuleName String?             @db.VarChar(40)
+  latestTag        String?             @db.VarChar(40)
   hooks            Hooks?
 
   @@id([authorName, name])
@@ -116,27 +116,38 @@ model File {
   @@id([authorName, moduleName, versionTag, path])
 }
 
+enum Permission {
+  NONE
+  READ
+  WRITE
+  READ_WRITE
+}
+
 model AccessToken {
   name        String   @db.VarChar(40)
   tokenHash   String   @unique @db.VarChar(48)
   dateCreated DateTime @default(now())
 
-  readAccessTokens         Boolean @default(false)
-  writeAccessTokens        Boolean @default(false)
-  readPrivateModules       Boolean @default(false)
-  readPrivateContributions Boolean @default(false)
+  // Permissions
+  profile              Permission @default(NONE) // WRITE only
+  accessTokens         Permission @default(NONE)
+  versions             Permission @default(NONE) // WRITE only
+  configs              Permission @default(NONE) // WRITE only
+  privateVersions      Permission @default(NONE)
+  privateConfigs       Permission @default(NONE)
+  privateContributions Permission @default(NONE) // READ only
 
   owner     User   @relation(fields: [ownerName], references: [name])
   ownerName String @db.VarChar(40)
 
-  @@id([name, ownerName])
+  @@id([ownerName, name])
 }
 
 model ModuleContributor {
-  readModule  Boolean @default(false)
-  writeModule Boolean @default(false)
-  readConfig  Boolean @default(false)
-  writeConfig Boolean @default(false)
+  // Permissions
+  version      Permission @default(NONE)
+  config       Permission @default(NONE)
+  contributors Permission @default(NONE) // WRITE only
 
   contributor     User   @relation("ContributesTo", fields: [contributorName], references: [name])
   contributorName String @db.VarChar(40)

@@ -16,14 +16,18 @@ export const ProfileUpdateInput = inputObjectType({
   },
 });
 
+// **** Access Token ****
+
 export const AccessTokenCreateInput = inputObjectType({
   name: "AccessTokenCreateInput",
   definition(t) {
     t.nonNull.string("name");
-    t.boolean("readAccessTokens");
-    t.boolean("writeAccessTokens");
-    t.boolean("readPrivateModules");
-    t.boolean("readPrivateContributions");
+    t.nonNull.field("accessTokens", { type: "Permission" });
+    t.nonNull.field("versions", { type: "Permission" });
+    t.nonNull.field("configs", { type: "Permission" });
+    t.nonNull.field("privateVersions", { type: "Permission" });
+    t.nonNull.field("privateConfigs", { type: "Permission" });
+    t.nonNull.field("privateContributions", { type: "Permission" });
   },
 });
 
@@ -31,17 +35,28 @@ export const AccessTokenUpdateInput = inputObjectType({
   name: "AccessTokenUpdateInput",
   definition(t) {
     t.string("name");
-    t.boolean("readAccessTokens");
-    t.boolean("writeAccessTokens");
-    t.boolean("readPrivateModules");
-    t.boolean("readPrivateContributions");
+    t.field("accessTokens", { type: "Permission" });
+    t.field("versions", { type: "Permission" });
+    t.field("configs", { type: "Permission" });
+    t.field("privateVersions", { type: "Permission" });
+    t.field("privateConfigs", { type: "Permission" });
+    t.field("privateContributions", { type: "Permission" });
+  },
+});
+
+// **** Module ****
+
+export const ModuleInput = inputObjectType({
+  name: "ModuleInput",
+  definition(t) {
+    t.nonNull.string("name");
+    t.string("author");
   },
 });
 
 export const ModuleUpsertInput = inputObjectType({
   name: "ModuleUpsertInput",
   definition(t) {
-    t.nonNull.string("name");
     t.string("fullName");
     t.string("description");
     t.string("homepage");
@@ -84,10 +99,9 @@ export const ContributorInput = inputObjectType({
   name: "ContributorInput",
   definition(t) {
     t.nonNull.string("contributor");
-    t.boolean("readModule");
-    t.boolean("writeModule");
-    t.boolean("readConfig");
-    t.boolean("writeConfig");
+    t.nonNull.field("version", { type: "Permission" });
+    t.nonNull.field("config", { type: "Permission" });
+    t.nonNull.field("contributors", { type: "Permission" });
   },
 });
 

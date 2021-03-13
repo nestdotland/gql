@@ -1,10 +1,31 @@
-import { queryType } from "nexus";
+import { nonNull, queryField, queryType } from "nexus";
+import type { Permission } from "@prisma/client";
 import { modelOptions } from "./object_types";
+
+function readAccess(permission: Permission): boolean {
+  return permission === "READ" || permission === "READ_WRITE";
+}
+
+// TODO: arweave URL to module / version
+
+export const profile = queryField("profile", {
+  type: nonNull("User"),
+  async resolve(_parent, _args, ctx) {
+    const profile = await ctx.prisma.user.findUnique({
+      where: {
+        name: ctx.accessToken.ownerName,
+      },
+    });
+    // user is non null
+    return profile!;
+  },
+});
 
 export const Query = queryType({
   definition(t) {
     t.crud.user();
     t.crud.users(modelOptions);
+
     t.crud.module({
       async resolve(root, args, ctx, info, originalResolve) {
         const authorName = args.where?.authorName_name?.authorName;
@@ -28,23 +49,25 @@ export const Query = queryType({
           if (module !== null) {
             // Public module
             if (module.private === false) return resolver();
-            const readAccess = module.contributors.some(
-              (contributor) => contributor.authorName === ctx.accessToken.ownerName && contributor.readModule
+            const readPermission = module.contributors.some(
+              (contributor) => contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.config)
             );
             // Module contributor
-            if (readAccess) return resolver();
+            if (readPermission) return resolver();
           }
         }
         // Unauthorized
         return null;
       },
     });
+
     t.crud.modules({
       ...modelOptions,
       resolve(root, args, ctx, info, originalResolve) {
         args.where = {
           ...args.where,
           OR: [
+            // Public module
             {
               private: { equals: false },
             },
@@ -52,7 +75,7 @@ export const Query = queryType({
             {
               contributors: {
                 some: {
-                  readModule: { equals: true },
+                  config: { in: ["READ", "READ_WRITE"] },
                   contributor: {
                     name: { equals: ctx.accessToken.ownerName },
                   },
@@ -65,7 +88,7 @@ export const Query = queryType({
                 accessTokens: {
                   some: {
                     tokenHash: { equals: ctx.accessToken.tokenHash },
-                    readPrivateModules: { equals: true },
+                    privateConfigs: { in: ["READ", "READ_WRITE"] },
                   },
                 },
               },
@@ -75,6 +98,7 @@ export const Query = queryType({
         return originalResolve(root, args, ctx, info);
       },
     });
+
     t.crud.version({
       async resolve(root, args, ctx, info, originalResolve) {
         const authorName = args.where?.authorName_moduleName_version?.authorName;
@@ -98,17 +122,18 @@ export const Query = queryType({
           if (module !== null) {
             // Public module
             if (module.private === false) return resolver();
-            const readAccess = module.contributors.some(
-              (contributor) => contributor.authorName === ctx.accessToken.ownerName && contributor.readModule
+            const readPermission = module.contributors.some(
+              (contributor) => contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.config)
             );
             // Module contributor
-            if (readAccess) return resolver();
+            if (readPermission) return resolver();
           }
         }
         // Unauthorized
         return null;
       },
     });
+
     t.crud.versions({
       ...modelOptions,
       resolve(root, args, ctx, info, originalResolve) {
@@ -116,6 +141,7 @@ export const Query = queryType({
         args.where.module = {
           ...args.where.module,
           OR: [
+            // Public module
             {
               private: { equals: false },
             },
@@ -123,7 +149,7 @@ export const Query = queryType({
             {
               contributors: {
                 some: {
-                  readModule: { equals: true },
+                  config: { in: ["READ", "READ_WRITE"] },
                   contributor: {
                     name: { equals: ctx.accessToken.ownerName },
                   },
@@ -136,7 +162,7 @@ export const Query = queryType({
                 accessTokens: {
                   some: {
                     tokenHash: { equals: ctx.accessToken.tokenHash },
-                    readPrivateModules: { equals: true },
+                    privateConfigs: { in: ["READ", "READ_WRITE"] },
                   },
                 },
               },
@@ -146,19 +172,5 @@ export const Query = queryType({
         return originalResolve(root, args, ctx, info);
       },
     });
-
-    t.nonNull.field("profile", {
-      type: "User",
-      async resolve(_parent, _args, ctx) {
-        const profile = await ctx.prisma.user.findUnique({
-          where: {
-            name: ctx.accessToken.ownerName,
-          },
-        });
-        return profile!; // user is non null
-      },
-    });
-
-    // TODO: arweave URL to module / version
   },
 });
