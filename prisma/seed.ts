@@ -105,7 +105,7 @@ async function main() {
     );
     try {
       for (const contributorName of contributors) {
-        const contributorData: Prisma.ModuleContributorsCreateInput = {
+        const contributorData: Prisma.ModuleContributorCreateInput = {
           contributor: {
             connect: {
               name: contributorName,
@@ -120,7 +120,7 @@ async function main() {
             },
           },
         };
-        await prisma.moduleContributors.create({
+        await prisma.moduleContributor.create({
           data: contributorData,
         });
         console.log(

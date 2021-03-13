@@ -130,6 +130,8 @@ export const Mutation = mutationType({
       },
     });
 
+    // TODO: write checks
+
     t.nonNull.field("upsertModule", {
       type: "Module",
       args: {
@@ -156,9 +158,9 @@ export const Mutation = mutationType({
           logo: args.data.logo,
         };
 
-        const tagUpdate = args.data.tags?.filter((input) => input.update) as TagUpdateInput[] | undefined;
-        const tagCreate = args.data.tags?.filter((input) => input.create) as TagInput[] | undefined;
-        const tagDelete = args.data.tags?.filter((input) => input.delete) as NameInput[] | undefined;
+        const tagUpdate = args.data.tags?.filter((input) => input.update).map((input) => input.update) as TagUpdateInput[] | undefined;
+        const tagCreate = args.data.tags?.filter((input) => input.create).map((input) => input.create) as TagInput[] | undefined;
+        const tagDelete = args.data.tags?.filter((input) => input.delete).map((input) => input.delete) as NameInput[] | undefined;
 
         const contributorUpdate = args.data.contributors?.filter((input) => input.update) as
           | ContributorUpdateInput[]
@@ -249,7 +251,20 @@ export const Mutation = mutationType({
                   },
                 };
               }),
-              create: tagCreate ?? [],
+              create: tagCreate?.map((input) => {
+                return {
+                  name: input.name,
+                  version: {
+                    connect: {
+                      authorName_moduleName_version: {
+                        authorName: ctx.accessToken.ownerName,
+                        moduleName: args.data.name,
+                        version: input.version,
+                      }
+                    }
+                  }
+                }
+              }),
               delete: tagDelete?.map(({ name }) => {
                 return {
                   authorName_moduleName_name: {
