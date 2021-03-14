@@ -1,18 +1,9 @@
-import type { Permission } from "@prisma/client";
 import { objectType } from "nexus";
-
-export const modelOptions = {
-  pagination: true,
-  ordering: true,
-  filtering: true,
-};
+import { readAccess } from "../utils/access";
+import { modelOptions } from "../utils/model";
 
 function equalsFalse(bool: boolean) {
   return bool ? {} : { equals: false };
-}
-
-function readAccess(permission: Permission): boolean {
-  return permission === "READ" || permission === "READ_WRITE";
 }
 
 export const User = objectType({
@@ -26,28 +17,28 @@ export const User = objectType({
     t.model.accessTokens({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.accessTokens)
+        return ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessTokens)
           ? originalResolve(user, args, ctx, info)
           : [];
       },
     });
+    /** Hide private modules if not authorized */
     t.model.modules({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = equalsFalse(
-          ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.privateConfigs)
-        );
+        args.where.private = equalsFalse(ctx.isOwner(user.name) && readAccess(ctx.accessToken.privateConfigs));
         return originalResolve(user, args, ctx, info);
       },
     });
+    /** Hide private contributions if not authorized */
     t.model.contributions({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
         args.where.module ??= {};
         args.where.module.private = equalsFalse(
-          ctx.accessToken.ownerName === user.name && readAccess(ctx.accessToken.privateContributions)
+          ctx.isOwner(user.name) && readAccess(ctx.accessToken.privateContributions)
         );
         return originalResolve(user, args, ctx, info);
       },
@@ -141,7 +132,7 @@ export const AccessToken = objectType({
     t.string("token", {
       description: "Only available when creating a token",
     });
-    // Permissions
+    /* Permissions */
     t.model.accessTokens();
     t.model.versions();
     t.model.configs();
@@ -156,7 +147,7 @@ export const ModuleContributor = objectType({
   definition(t) {
     t.model.contributor();
     t.model.module();
-    // Permissions
+    /* Permissions */
     t.model.version();
     t.model.config();
     t.model.contributors();

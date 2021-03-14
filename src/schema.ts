@@ -2,9 +2,9 @@ import { asNexusMethod, makeSchema } from "nexus";
 import { nexusPrisma } from "nexus-plugin-prisma";
 import { GraphQLDateTime } from "graphql-iso-date";
 import * as queries from "./queries";
-import * as mutations from "./mutations";
+import * as mutations from "./crud/mutations";
 import * as types from "./object_types";
-import * as input_types from "./input_object_types";
+import * as input_types from "./types/input";
 
 export const DateTime = asNexusMethod(GraphQLDateTime, "date");
 

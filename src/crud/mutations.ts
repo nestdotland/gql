@@ -1,8 +1,8 @@
-import { arg, mutationField, mutationType, nonNull } from "nexus";
+import { arg, mutationField, nonNull } from "nexus";
 import { ForbiddenError, UserInputError } from "apollo-server-express";
-import type { Permission } from "@prisma/client";
-import crypto from "crypto";
-import { TagInput } from "./input_object_types";
+import { TagInput } from "../types/input";
+import { writeAccess } from "../utils/access";
+import { generateToken } from "../utils/token";
 
 type NameInput = {
   name: string;
@@ -34,12 +34,6 @@ type ContributorInput = {
 function notNull<T>(arg: T | null | undefined): T | undefined {
   return arg === null ? undefined : arg;
 }
-
-function writeAccess(permission?: Permission): boolean {
-  return permission === "WRITE" || permission === "READ_WRITE";
-}
-
-const pepper = process.env.PEPPER ?? "";
 
 export const updateProfile = mutationField("updateProfile", {
   type: nonNull("User"),
@@ -110,11 +104,11 @@ export const createAccessToken = mutationField("createAccessToken", {
     if (!writeAccess(ctx.accessToken.accessTokens)) {
       throw new ForbiddenError("You are not allowed to add access tokens.");
     }
-    const token = crypto.randomBytes(24).toString("hex");
+    const { token, tokenHash } = generateToken();
     const accessToken = await ctx.prisma.accessToken.create({
       data: {
         name: args.data.name,
-        tokenHash: crypto.createHmac("sha256", pepper).update(token).digest("base64"),
+        tokenHash,
         accessTokens: args.data.accessTokens,
         versions: args.data.versions,
         configs: args.data.configs,
@@ -170,8 +164,6 @@ export const deleteAccessToken = mutationField("deleteAccessToken", {
     });
   },
 });
-
-// TODO: write checks
 
 export const upsertModule = mutationField("upsertModule", {
   type: nonNull("Module"),
@@ -244,19 +236,55 @@ export const upsertModule = mutationField("upsertModule", {
 
     const tagUpdate = args.data.tags?.filter((input) => input.update).map((input) => input.update) as
       | TagUpdateInput[]
+      | null
       | undefined;
     const tagCreate = args.data.tags?.filter((input) => input.create).map((input) => input.create) as
       | TagInput[]
+      | null
       | undefined;
     const tagDelete = args.data.tags?.filter((input) => input.delete).map((input) => input.delete) as
       | NameInput[]
+      | null
       | undefined;
+
+    if (tagCreate != undefined) {
+      for (const input of tagCreate) {
+        const version = await ctx.prisma.version.findUnique({
+          where: {
+            authorName_moduleName_version: {
+              ...authorName_moduleName,
+              version: input.version,
+            },
+          },
+        });
+        if (version === null) {
+          throw new UserInputError(`Tag creation: Couldn't find version ${input.version}`);
+        }
+      }
+    }
 
     const contributorUpdate = args.data.contributors?.filter((input) => input.update) as
       | ContributorUpdateInput[]
+      | null
       | undefined;
-    const contributorCreate = args.data.contributors?.filter((input) => input.create) as ContributorInput[] | undefined;
-    const contributorDelete = args.data.contributors?.filter((input) => input.delete) as NameInput[] | undefined;
+    const contributorCreate = args.data.contributors?.filter((input) => input.create) as
+      | ContributorInput[]
+      | null
+      | undefined;
+    const contributorDelete = args.data.contributors?.filter((input) => input.delete) as NameInput[] | null | undefined;
+
+    if (contributorCreate != undefined) {
+      for (const input of contributorCreate) {
+        const version = await ctx.prisma.user.findUnique({
+          where: {
+            name: input.contributor,
+          },
+        });
+        if (version === null) {
+          throw new UserInputError(`Contributor creation: Couldn't find user ${input.contributor}`);
+        }
+      }
+    }
 
     return ctx.prisma.module.upsert({
       where: {
@@ -360,16 +388,5 @@ export const upsertModule = mutationField("upsertModule", {
         ...module,
       },
     });
-  },
-});
-
-export const Mutation = mutationType({
-  definition(t) {
-    // TODO: write authorization check
-
-    // internal
-    t.crud.createOneUser();
-    t.crud.createOneModule();
-    t.crud.createOneVersion();
   },
 });
