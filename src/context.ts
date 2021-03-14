@@ -1,12 +1,21 @@
 import { AccessToken, PrismaClient } from "@prisma/client";
-import { AuthenticationError, ExpressContext, SyntaxError } from "apollo-server-express";
+import { AuthenticationError, ExpressContext, SyntaxError, ApolloError } from "apollo-server-express";
+import { RateLimiterRedis } from "rate-limiter-flexible";
+import Redis from "ioredis";
 import { hashToken } from "./utils/token";
+import { HOURLY_REQUEST_LIMIT } from "./utils/env";
 
 export interface Context {
   prisma: PrismaClient;
   accessToken: AccessToken;
   isOwner: (name: string) => boolean;
 }
+
+const rateLimiterRedis = new RateLimiterRedis({
+  storeClient: new Redis({ enableOfflineQueue: false }),
+  points: HOURLY_REQUEST_LIMIT,
+  duration: 3600,
+});
 
 const prisma = new PrismaClient();
 
@@ -30,6 +39,19 @@ export async function context({ req }: ExpressContext): Promise<Context> {
   if (accessToken === null) {
     throw new AuthenticationError("The given token is invalid.");
   }
+
+  // no request limit for rest api
+  if (accessToken.ownerName !== "nestdotland") {
+    try {
+      await rateLimiterRedis.consume(req.ip);
+    } catch {
+      throw new ApolloError(
+        `Too many requests, please try again later. (${HOURLY_REQUEST_LIMIT} req/h)`,
+        "TOO_MANY_REQUESTS"
+      );
+    }
+  }
+
   return {
     accessToken,
     prisma,

@@ -1,6 +1,6 @@
 import express from "express";
 import { server } from "./server";
-import { graphqlPort } from "./utils/env";
+import { GRAPHQL_PORT } from "./utils/env";
 
 const app = express();
 
@@ -12,6 +12,6 @@ app.use((_req, res) => {
   res.end();
 });
 
-app.listen({ port: graphqlPort }, () => {
-  console.log(`🚀 Server ready at http://localhost:${graphqlPort}${server.graphqlPath}`);
+app.listen({ port: GRAPHQL_PORT }, () => {
+  console.log(`🚀 Server ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`);
 });

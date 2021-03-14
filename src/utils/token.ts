@@ -1,8 +1,8 @@
 import crypto from "crypto";
-import { pepper } from "./env";
+import { PEPPER } from "./env";
 
 export function hashToken(token: string) {
-  return crypto.createHmac("sha256", pepper).update(token).digest("base64");
+  return crypto.createHmac("sha256", PEPPER).update(token).digest("base64");
 }
 
 export function generateToken() {

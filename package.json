@@ -6,8 +6,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/server",
-    "start": "node dist/server",
+    "dev": "ts-node-dev --no-notify --respawn --transpile-only src/",
+    "start": "node dist/",
     "clean": "rm -rf dist",
     "build": "npm -s run clean && npm -s run generate && tsc",
     "test": "echo 'no tests are defined'",
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@types/faker": "^5.1.6",
     "@types/graphql-iso-date": "^3.4.0",
+    "@types/ioredis": "^4.22.0",
     "@types/node": "^14.14.22",
     "faker": "^5.4.0",
     "prettier": "^2.2.1",
@@ -39,12 +40,14 @@
   },
   "dependencies": {
     "@prisma/client": "~2.18.0",
-    "apollo-server": "^2.21.0",
     "apollo-server-express": "^2.21.0",
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",
     "graphql-iso-date": "^3.6.1",
+    "graphql-query-complexity": "^0.7.2",
+    "ioredis": "^4.24.2",
     "nexus": "^1.0.0",
-    "nexus-plugin-prisma": "~0.32.0"
+    "nexus-plugin-prisma": "~0.32.0",
+    "rate-limiter-flexible": "^2.2.1"
   }
 }

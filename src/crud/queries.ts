@@ -58,7 +58,7 @@ export const Query = queryType({
 
     t.crud.modules({
       ...modelOptions,
-      resolve(root, args, ctx, info, originalResolve) {
+      async resolve(parent, args, ctx, info, originalResolve) {
         args.where = {
           ...args.where,
           OR: [
@@ -90,7 +90,7 @@ export const Query = queryType({
             },
           ],
         };
-        return originalResolve(root, args, ctx, info);
+        return originalResolve(parent, args, ctx, info);
       },
     });
 
