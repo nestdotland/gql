@@ -23,6 +23,7 @@ async function main() {
       fullName: maybe(faker.name.findName(firstName, lastName)),
       bioText: maybe(faker.lorem.paragraph()),
       email: maybe(faker.internet.email(firstName, lastName)),
+      passwordHash: faker.random.hexaDecimal(10),
       /* accessTokens: maybe(Array.from(
         new Array(faker.random.number(5)),
         () => faker.random.uuid(),

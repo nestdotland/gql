@@ -45,7 +45,7 @@ export const updateProfile = mutationField("updateProfile", {
     ),
   },
   resolve(_parent, args, ctx) {
-    if (!writeAccess(ctx.accessToken.profile)) {
+    if (!writeAccess(ctx.accessToken.accessProfile)) {
       throw new ForbiddenError("You are not allowed to edit user profile.");
     }
     return ctx.prisma.user.update({
@@ -75,11 +75,11 @@ export const updateAccessToken = mutationField("updateAccessToken", {
       data: {
         name: notNull(args.data.name),
         accessTokens: notNull(args.data.accessTokens),
-        versions: notNull(args.data.versions),
-        configs: notNull(args.data.configs),
-        privateVersions: notNull(args.data.privateVersions),
-        privateConfigs: notNull(args.data.privateConfigs),
-        privateContributions: notNull(args.data.privateContributions),
+        accessVersions: notNull(args.data.versions),
+        accessConfigs: notNull(args.data.configs),
+        accessPrivateVersions: notNull(args.data.privateVersions),
+        accessPrivateConfigs: notNull(args.data.privateConfigs),
+        accessPrivateContributions: notNull(args.data.privateContributions),
       },
       where: {
         ownerName_name: {
@@ -110,11 +110,11 @@ export const createAccessToken = mutationField("createAccessToken", {
         name: args.data.name,
         tokenHash,
         accessTokens: args.data.accessTokens,
-        versions: args.data.versions,
-        configs: args.data.configs,
-        privateVersions: args.data.privateVersions,
-        privateConfigs: args.data.privateConfigs,
-        privateContributions: args.data.privateContributions,
+        accessVersions: args.data.versions,
+        accessConfigs: args.data.configs,
+        accessPrivateVersions: args.data.privateVersions,
+        accessPrivateConfigs: args.data.privateConfigs,
+        accessPrivateContributions: args.data.privateContributions,
         owner: {
           connect: {
             name: ctx.accessToken.ownerName,
@@ -199,15 +199,19 @@ export const upsertModule = mutationField("upsertModule", {
           },
         },
       });
-      if (!writeAccess(permissions?.config)) {
+      if (!writeAccess(permissions?.accessConfig)) {
         throw new ForbiddenError("You are not allowed to edit this module configuration.");
       }
-      if (!writeAccess(permissions?.contributors) && args.data.contributors && args.data.contributors?.length > 0) {
+      if (
+        !writeAccess(permissions?.accessContributors) &&
+        args.data.contributors &&
+        args.data.contributors?.length > 0
+      ) {
         throw new ForbiddenError("You are not allowed to edit contributors.");
       }
       authorName = args.where.author;
     } else {
-      if (!writeAccess(ctx.accessToken.configs)) {
+      if (!writeAccess(ctx.accessToken.accessConfigs)) {
         throw new ForbiddenError("You are not allowed to edit this module configuration.");
       }
       authorName = ctx.accessToken.ownerName;

@@ -27,7 +27,7 @@ export const User = objectType({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = equalsFalse(ctx.isOwner(user.name) && readAccess(ctx.accessToken.privateConfigs));
+        args.where.private = equalsFalse(ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessPrivateConfigs));
         return originalResolve(user, args, ctx, info);
       },
     });
@@ -38,7 +38,7 @@ export const User = objectType({
         args.where ??= {};
         args.where.module ??= {};
         args.where.module.private = equalsFalse(
-          ctx.isOwner(user.name) && readAccess(ctx.accessToken.privateContributions)
+          ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessPrivateContributions)
         );
         return originalResolve(user, args, ctx, info);
       },
@@ -133,12 +133,13 @@ export const AccessToken = objectType({
       description: "Only available when creating a token",
     });
     /* Permissions */
+    t.model.accessProfile();
     t.model.accessTokens();
-    t.model.versions();
-    t.model.configs();
-    t.model.privateVersions();
-    t.model.privateConfigs();
-    t.model.privateContributions();
+    t.model.accessVersions();
+    t.model.accessConfigs();
+    t.model.accessPrivateVersions();
+    t.model.accessPrivateConfigs();
+    t.model.accessPrivateContributions();
   },
 });
 
@@ -148,8 +149,8 @@ export const ModuleContributor = objectType({
     t.model.contributor();
     t.model.module();
     /* Permissions */
-    t.model.version();
-    t.model.config();
-    t.model.contributors();
+    t.model.accessVersions();
+    t.model.accessConfig();
+    t.model.accessContributors();
   },
 });

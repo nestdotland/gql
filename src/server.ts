@@ -1,5 +1,5 @@
 import { ApolloServer } from "apollo-server-express";
-import { getComplexity, simpleEstimator } from "graphql-query-complexity";
+import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from "graphql-query-complexity";
 import { separateOperations } from "graphql";
 import { schema } from "./schema";
 import { context } from "./context";
@@ -8,22 +8,7 @@ import { MAX_QUERY_COMPLEXITY } from "./utils/env";
 export const server = new ApolloServer({
   schema,
   context,
-  formatError(error) {
-    // optional, default to current behavior
-    // i am imagining this object is the same as received in onError of apollo-link-error
-    const { message } = error;
-
-    console.log("YO");
-
-    // if (operation.somethingElse) { return error }; // conditionally shape the object
-
-    // whatever is returned from formatError is the object received by consumer components as the error object
-    return {
-      message: message.replace("GraphQL error: ", "").trim(),
-    };
-  },
   plugins: [
-    /* Limits query complexity */
     {
       requestDidStart: () => ({
         didResolveOperation({ request, document }) {
@@ -35,6 +20,8 @@ export const server = new ApolloServer({
             query: request.operationName ? separateOperations(document)[request.operationName] : document,
             variables: request.variables,
             estimators: [
+              // Enables nexus custom complexity fields.
+              fieldExtensionsEstimator(),
               // This will assign each field a complexity of 1
               // if no other estimator returned a value.
               simpleEstimator({ defaultComplexity: 1 }),

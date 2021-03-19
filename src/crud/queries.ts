@@ -45,7 +45,8 @@ export const Query = queryType({
             /* Public module */
             if (module.private === false) return resolver();
             const readPermission = module.contributors.some(
-              (contributor) => contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.config)
+              (contributor) =>
+                contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.accessConfig)
             );
             /* Module contributor */
             if (readPermission) return resolver();
@@ -70,7 +71,7 @@ export const Query = queryType({
             {
               contributors: {
                 some: {
-                  config: hasRead,
+                  accessConfig: hasRead,
                   contributor: {
                     name: { equals: ctx.accessToken.ownerName },
                   },
@@ -83,7 +84,7 @@ export const Query = queryType({
                 accessTokens: {
                   some: {
                     tokenHash: { equals: ctx.accessToken.tokenHash },
-                    privateConfigs: hasRead,
+                    accessPrivateConfigs: hasRead,
                   },
                 },
               },
@@ -118,7 +119,8 @@ export const Query = queryType({
             /* Public module */
             if (module.private === false) return resolver();
             const readPermission = module.contributors.some(
-              (contributor) => contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.config)
+              (contributor) =>
+                contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.accessConfig)
             );
             /* Module contributor */
             if (readPermission) return resolver();
@@ -144,7 +146,7 @@ export const Query = queryType({
             {
               contributors: {
                 some: {
-                  config: hasRead,
+                  accessConfig: hasRead,
                   contributor: {
                     name: { equals: ctx.accessToken.ownerName },
                   },
@@ -157,7 +159,7 @@ export const Query = queryType({
                 accessTokens: {
                   some: {
                     tokenHash: { equals: ctx.accessToken.tokenHash },
-                    privateConfigs: hasRead,
+                    accessPrivateConfigs: hasRead,
                   },
                 },
               },

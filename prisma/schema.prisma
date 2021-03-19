@@ -11,10 +11,11 @@ datasource db {
 }
 
 model User {
-  name     String  @id @db.VarChar(40)
-  fullName String? @db.VarChar(100)
-  bioText  String?
-  email    String? @unique @db.VarChar(100)
+  name         String  @id @db.VarChar(40)
+  fullName     String? @db.VarChar(100)
+  bioText      String?
+  email        String? @unique @db.VarChar(100)
+  passwordHash String  @db.VarChar(44)
 
   accessTokens  AccessToken[]
   modules       Module[]
@@ -125,17 +126,17 @@ enum Permission {
 
 model AccessToken {
   name        String   @db.VarChar(40)
-  tokenHash   String   @unique @db.VarChar(48)
+  tokenHash   String   @unique @db.VarChar(44)
   dateCreated DateTime @default(now())
 
   // Permissions
-  profile              Permission @default(NONE) // WRITE only
-  accessTokens         Permission @default(NONE)
-  versions             Permission @default(NONE) // WRITE only
-  configs              Permission @default(NONE) // WRITE only
-  privateVersions      Permission @default(NONE)
-  privateConfigs       Permission @default(NONE)
-  privateContributions Permission @default(NONE) // READ only
+  accessProfile              Permission @default(NONE) // WRITE only
+  accessTokens               Permission @default(NONE)
+  accessVersions             Permission @default(NONE) // WRITE only
+  accessConfigs              Permission @default(NONE) // WRITE only
+  accessPrivateVersions      Permission @default(NONE)
+  accessPrivateConfigs       Permission @default(NONE)
+  accessPrivateContributions Permission @default(NONE) // READ only
 
   owner     User   @relation(fields: [ownerName], references: [name])
   ownerName String @db.VarChar(40)
@@ -145,9 +146,9 @@ model AccessToken {
 
 model ModuleContributor {
   // Permissions
-  version      Permission @default(NONE)
-  config       Permission @default(NONE)
-  contributors Permission @default(NONE) // WRITE only
+  accessVersions     Permission @default(NONE)
+  accessConfig       Permission @default(NONE)
+  accessContributors Permission @default(NONE) // WRITE only
 
   contributor     User   @relation("ContributesTo", fields: [contributorName], references: [name])
   contributorName String @db.VarChar(40)

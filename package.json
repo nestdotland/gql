@@ -44,7 +44,7 @@
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",
     "graphql-iso-date": "^3.6.1",
-    "graphql-query-complexity": "^0.7.2",
+    "graphql-query-complexity": "^0.8.0",
     "ioredis": "^4.24.2",
     "nexus": "^1.0.0",
     "nexus-plugin-prisma": "~0.32.0",
