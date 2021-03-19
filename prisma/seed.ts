@@ -78,7 +78,7 @@ async function main() {
             prepublish: maybe(faker.lorem.words()),
             postpublish: maybe(faker.lorem.words()),
           },
-        }),
+        })
       };
       try {
         await prisma.module.create({

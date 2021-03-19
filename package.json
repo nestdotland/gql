@@ -45,9 +45,7 @@
     "graphql": "^15.5.0",
     "graphql-iso-date": "^3.6.1",
     "graphql-query-complexity": "^0.8.0",
-    "ioredis": "^4.24.2",
     "nexus": "^1.0.0",
-    "nexus-plugin-prisma": "~0.32.0",
-    "rate-limiter-flexible": "^2.2.1"
+    "nexus-plugin-prisma": "~0.32.0"
   }
 }

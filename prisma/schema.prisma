@@ -16,6 +16,7 @@ model User {
   bioText      String?
   email        String? @unique @db.VarChar(100)
   passwordHash String  @db.VarChar(44)
+  logs         Int[]
 
   accessTokens  AccessToken[]
   modules       Module[]
