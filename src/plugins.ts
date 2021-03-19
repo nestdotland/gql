@@ -15,7 +15,6 @@ const nullGuard = nullabilityGuardPlugin({
     String: () => "",
     Boolean: () => false,
     DateTime: () => new Date(),
-    Json: () => [],
   },
 });
 

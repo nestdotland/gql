@@ -1,4 +1,4 @@
-import { ApolloServer } from "apollo-server-express";
+import { ApolloServer } from "apollo-server";
 import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from "graphql-query-complexity";
 import { separateOperations } from "graphql";
 import { schema } from "./schema";
