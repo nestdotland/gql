@@ -143,3 +143,33 @@ export const HooksInput = inputObjectType({
     t.string("postpublish");
   },
 });
+
+// **** Version ****
+
+export const VersionInput = inputObjectType({
+  name: "VersionInput",
+  definition(t) {
+    t.nonNull.string("version");
+    t.nonNull.date("published");
+    t.boolean("deprecated");
+    t.boolean("vulnerable");
+    t.list.nonNull.string("supportedDeno");
+    t.string("main");
+    t.list.nonNull.string("bin");
+    t.string("logo");
+    t.nonNull.string("module");
+    t.string("author");
+    t.nonNull.list.nonNull.field("files", { type: "FileInput" });
+  },
+});
+
+export const FileInput = inputObjectType({
+  name: "FileInput",
+  definition(t) {
+    t.nonNull.string("name");
+    t.nonNull.string("path");
+    t.nonNull.string("type");
+    t.nonNull.string("hash");
+    t.nonNull.string("txID");
+  },
+});

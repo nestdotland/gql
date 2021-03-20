@@ -1,5 +1,6 @@
 import { arg, mutationField, nonNull } from "nexus";
 import { ForbiddenError, UserInputError } from "apollo-server-express";
+import semver from "semver";
 import { TagInput } from "../types/input";
 import { writeAccess } from "../utils/access";
 import { generateToken } from "../utils/token";
@@ -142,18 +143,6 @@ export const deleteAccessToken = mutationField("deleteAccessToken", {
     if (!writeAccess(ctx.accessToken.accessTokens)) {
       throw new ForbiddenError("You are not allowed to delete access tokens.");
     }
-    const writeAccessTokens = await ctx.prisma.accessToken.findMany({
-      where: {
-        NOT: { name: args.where.name },
-        owner: {
-          name: ctx.accessToken.ownerName,
-        },
-        accessTokens: { in: ["WRITE", "READ_WRITE"] },
-      },
-    });
-    if (writeAccessTokens.length === 0) {
-      throw new Error("Cannot remove access token. At least one write access token is required.");
-    }
     return ctx.prisma.accessToken.delete({
       where: {
         ownerName_name: {
@@ -176,13 +165,13 @@ export const upsertModule = mutationField("upsertModule", {
     where: nonNull(arg({ type: "ModuleInput" })),
   },
   async resolve(_parent, args, ctx) {
-    let authorName;
+    const authorName = args.where.author ?? ctx.accessToken.ownerName;
     // potential module contributor
-    if (args.where.author && args.where.author !== ctx.accessToken.ownerName) {
+    if (authorName !== ctx.accessToken.ownerName) {
       const module = await ctx.prisma.module.findUnique({
         where: {
           authorName_name: {
-            authorName: args.where.author,
+            authorName,
             name: args.where.name,
           },
         },
@@ -193,7 +182,7 @@ export const upsertModule = mutationField("upsertModule", {
       const permissions = await ctx.prisma.moduleContributor.findUnique({
         where: {
           authorName_moduleName_contributorName: {
-            authorName: args.where.author,
+            authorName,
             moduleName: args.where.name,
             contributorName: ctx.accessToken.ownerName,
           },
@@ -209,12 +198,10 @@ export const upsertModule = mutationField("upsertModule", {
       ) {
         throw new ForbiddenError("You are not allowed to edit contributors.");
       }
-      authorName = args.where.author;
     } else {
       if (!writeAccess(ctx.accessToken.accessConfigs)) {
         throw new ForbiddenError("You are not allowed to edit this module configuration.");
       }
-      authorName = ctx.accessToken.ownerName;
     }
 
     const authorName_moduleName = {
@@ -392,5 +379,116 @@ export const upsertModule = mutationField("upsertModule", {
         ...module,
       },
     });
+  },
+});
+
+export const publishVersion = mutationField("publishVersion", {
+  type: nonNull("Version"),
+  args: {
+    data: nonNull(
+      arg({
+        type: "VersionInput",
+      })
+    ),
+  },
+  async resolve(_parent, args, ctx) {
+    const authorName = args.data.author ?? ctx.accessToken.ownerName;
+    const moduleName = args.data.module;
+    // potential module contributor
+    if (authorName !== ctx.accessToken.ownerName) {
+      const permissions = await ctx.prisma.moduleContributor.findUnique({
+        where: {
+          authorName_moduleName_contributorName: {
+            authorName,
+            moduleName,
+            contributorName: ctx.accessToken.ownerName,
+          },
+        },
+      });
+      if (!writeAccess(permissions?.accessVersions)) {
+        throw new ForbiddenError("You are not allowed to publish versions for this module.");
+      }
+    }
+
+    if (!semver.valid(args.data.version)) {
+      throw new UserInputError("The given version does not follow Semantic Versioning.");
+    }
+
+    const version = await ctx.prisma.version.create({
+      data: {
+        version: args.data.version,
+        published: args.data.published,
+        deprecated: args.data.deprecated,
+        vulnerable: args.data.vulnerable,
+        supportedDeno: notNull(args.data.supportedDeno),
+        // dependencies:  // TODO
+        main: args.data.main,
+        bin: notNull(args.data.bin),
+        logo: args.data.logo,
+        files: {
+          create: args.data.files,
+        },
+        publisher: {
+          connect: {
+            name: authorName,
+          },
+        },
+        module: {
+          connectOrCreate: {
+            where: {
+              authorName_name: {
+                authorName,
+                name: moduleName,
+              },
+            },
+            create: {
+              authorName,
+              name: moduleName,
+            },
+          },
+        },
+      },
+    });
+
+    const versions = await ctx.prisma.version.findMany({
+      where: {
+        authorName,
+        moduleName,
+      },
+      select: {
+        version: true,
+      },
+    });
+
+    let latest: string;
+    const sorted = semver.sort(versions.map((v) => v.version));
+    latest = sorted[sorted.length - 1];
+    // Don't include prerelease if a stable version exist.
+    if (semver.major(latest) !== 0 && !semver.prerelease(latest)) {
+      const sorted2 = semver.sort(sorted.filter((v) => !semver.prerelease(v)));
+      latest = sorted2[sorted2.length - 1];
+    }
+
+    // update latest version
+    await ctx.prisma.module.update({
+      where: {
+        authorName_name: {
+          authorName,
+          name: moduleName,
+        },
+      },
+      data: {
+        latest: {
+          connect: {
+            authorName_moduleName_version: {
+              authorName,
+              moduleName,
+              version: latest,
+            },
+          },
+        },
+      },
+    });
+    return version;
   },
 });

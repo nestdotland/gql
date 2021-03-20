@@ -19,6 +19,7 @@ model User {
   logs         Int[]
 
   accessTokens  AccessToken[]
+  sessions      Session[]
   modules       Module[]
   contributions ModuleContributor[] @relation("ContributesTo")
   publications  Version[]           @relation("Publisher")
@@ -158,4 +159,14 @@ model ModuleContributor {
   moduleName      String @db.VarChar(40)
 
   @@id([authorName, moduleName, contributorName])
+}
+
+model Session {
+  tokenHash   String   @unique @db.VarChar(44)
+  dateCreated DateTime @default(now())
+
+  user     User   @relation(fields: [userName], references: [name])
+  userName String @db.VarChar(40)
+
+  @@id([userName, dateCreated])
 }
