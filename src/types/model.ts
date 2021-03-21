@@ -17,9 +17,16 @@ export const User = objectType({
     t.model.accessTokens({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessTokens)
+        return ctx.user === user.name &&
+          (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessTokens)))
           ? originalResolve(user, args, ctx, info)
           : [];
+      },
+    });
+    t.model.sessions({
+      ...modelOptions,
+      resolve(user, args, ctx, info, originalResolve) {
+        return ctx.user === user.name && ctx.type === "session" ? originalResolve(user, args, ctx, info) : [];
       },
     });
     /** Hide private modules if not authorized */
@@ -27,7 +34,10 @@ export const User = objectType({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = equalsFalse(ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessPrivateConfigs));
+        args.where.private = equalsFalse(
+          ctx.user === user.name &&
+            (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessPrivateConfigs)))
+        );
         return originalResolve(user, args, ctx, info);
       },
     });
@@ -38,7 +48,8 @@ export const User = objectType({
         args.where ??= {};
         args.where.module ??= {};
         args.where.module.private = equalsFalse(
-          ctx.isOwner(user.name) && readAccess(ctx.accessToken.accessPrivateContributions)
+          ctx.user === user.name &&
+            (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessPrivateContributions)))
         );
         return originalResolve(user, args, ctx, info);
       },
@@ -130,7 +141,7 @@ export const AccessToken = objectType({
     t.model.name();
     t.model.owner();
     t.string("token", {
-      description: "Only available when creating a token",
+      description: "Only available when creating a token.",
     });
     /* Permissions */
     t.model.accessProfile();
@@ -152,5 +163,15 @@ export const ModuleContributor = objectType({
     t.model.accessVersions();
     t.model.accessConfig();
     t.model.accessContributors();
+  },
+});
+
+export const Session = objectType({
+  name: "Session",
+  definition(t) {
+    t.model.dateCreated();
+    t.string("token", {
+      description: "Only available when logging in.",
+    });
   },
 });

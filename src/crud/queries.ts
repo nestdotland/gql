@@ -1,15 +1,43 @@
 import { nonNull, queryField, queryType } from "nexus";
 import { hasRead, readAccess } from "../utils/access";
 import { modelOptions } from "../utils/model";
+import { generateToken } from "../utils/token";
 
 // TODO(query): arweave URL to module / version
+
+function noLogin(): never {
+  throw new Error("You must get a session token to perform this action.");
+}
+
+export const login = queryField("login", {
+  type: "Session",
+  async resolve(_parent, _args, ctx) {
+    if (ctx.type === "login") {
+      const { token, tokenHash } = generateToken();
+      const session = await ctx.prisma.session.create({
+        data: {
+          tokenHash,
+          user: {
+            connect: {
+              name: ctx.user,
+            },
+          },
+        },
+      });
+      return {
+        ...session,
+        token,
+      };
+    } else throw new Error("Cannot access login query in this state.");
+  },
+});
 
 export const profile = queryField("profile", {
   type: nonNull("User"),
   async resolve(_parent, _args, ctx) {
     const profile = await ctx.prisma.user.findUnique({
       where: {
-        name: ctx.accessToken.ownerName,
+        name: ctx.user,
       },
     });
     return profile!; // user is non null
@@ -28,7 +56,7 @@ export const Query = queryType({
         const resolver = () => originalResolve(root, args, ctx, info);
         if (authorName && name) {
           /* Module author */
-          if (authorName === ctx.accessToken.ownerName) return resolver();
+          if (authorName === ctx.user) return resolver();
           const module = await ctx.prisma.module.findUnique({
             where: {
               authorName_name: {
@@ -45,8 +73,7 @@ export const Query = queryType({
             /* Public module */
             if (module.private === false) return resolver();
             const readPermission = module.contributors.some(
-              (contributor) =>
-                contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.accessConfig)
+              (contributor) => contributor.authorName === ctx.user && readAccess(contributor.accessConfig)
             );
             /* Module contributor */
             if (readPermission) return resolver();
@@ -73,22 +100,34 @@ export const Query = queryType({
                 some: {
                   accessConfig: hasRead,
                   contributor: {
-                    name: { equals: ctx.accessToken.ownerName },
+                    name: { equals: ctx.user },
                   },
                 },
               },
             },
             /* Author read access */
-            {
-              author: {
-                accessTokens: {
-                  some: {
-                    tokenHash: { equals: ctx.accessToken.tokenHash },
-                    accessPrivateConfigs: hasRead,
+            ctx.type === "token"
+              ? {
+                  author: {
+                    accessTokens: {
+                      some: {
+                        tokenHash: { equals: ctx.accessToken.tokenHash },
+                        accessPrivateConfigs: hasRead,
+                      },
+                    },
                   },
-                },
-              },
-            },
+                }
+              : ctx.type === "session"
+              ? {
+                  author: {
+                    sessions: {
+                      some: {
+                        tokenHash: { equals: ctx.session.tokenHash },
+                      },
+                    },
+                  },
+                }
+              : noLogin(),
           ],
         };
         return originalResolve(parent, args, ctx, info);
@@ -102,7 +141,7 @@ export const Query = queryType({
         const resolver = () => originalResolve(root, args, ctx, info);
         if (authorName && moduleName) {
           /* Module author */
-          if (authorName === ctx.accessToken.ownerName) return resolver();
+          if (authorName === ctx.user) return resolver();
           const module = await ctx.prisma.module.findUnique({
             where: {
               authorName_name: {
@@ -119,8 +158,7 @@ export const Query = queryType({
             /* Public module */
             if (module.private === false) return resolver();
             const readPermission = module.contributors.some(
-              (contributor) =>
-                contributor.authorName === ctx.accessToken.ownerName && readAccess(contributor.accessConfig)
+              (contributor) => contributor.authorName === ctx.user && readAccess(contributor.accessConfig)
             );
             /* Module contributor */
             if (readPermission) return resolver();
@@ -148,22 +186,34 @@ export const Query = queryType({
                 some: {
                   accessConfig: hasRead,
                   contributor: {
-                    name: { equals: ctx.accessToken.ownerName },
+                    name: { equals: ctx.user },
                   },
                 },
               },
             },
             /* Author read access */
-            {
-              author: {
-                accessTokens: {
-                  some: {
-                    tokenHash: { equals: ctx.accessToken.tokenHash },
-                    accessPrivateConfigs: hasRead,
+            ctx.type === "token"
+              ? {
+                  author: {
+                    accessTokens: {
+                      some: {
+                        tokenHash: { equals: ctx.accessToken.tokenHash },
+                        accessPrivateConfigs: hasRead,
+                      },
+                    },
                   },
-                },
-              },
-            },
+                }
+              : ctx.type === "session"
+              ? {
+                  author: {
+                    sessions: {
+                      some: {
+                        tokenHash: { equals: ctx.session.tokenHash },
+                      },
+                    },
+                  },
+                }
+              : noLogin(),
           ],
         };
         return originalResolve(root, args, ctx, info);

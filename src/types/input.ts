@@ -1,4 +1,4 @@
-import { inputObjectType } from "nexus";
+import { inputObjectType, objectType } from "nexus";
 
 export const NameInput = inputObjectType({
   name: "NameInput",
@@ -171,5 +171,15 @@ export const FileInput = inputObjectType({
     t.nonNull.string("type");
     t.nonNull.string("hash");
     t.nonNull.string("txID");
+  },
+});
+
+// **** Login ****
+
+export const LoginInput = inputObjectType({
+  name: "LoginInput",
+  definition(t) {
+    t.nonNull.string("username");
+    t.nonNull.string("password");
   },
 });
