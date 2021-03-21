@@ -1,12 +1,7 @@
 import { arg, mutationField, nonNull } from "nexus";
 import { ForbiddenError } from "apollo-server-express";
-import { writeAccess } from "../../utils/access";
 import { notNull } from "../../utils/null";
 import { generateToken } from "../../utils/token";
-
-function noLogin(): never {
-  throw new Error("You must get a session token to perform this action.");
-}
 
 export const updateAccessToken = mutationField("updateAccessToken", {
   type: nonNull("AccessToken"),
@@ -19,8 +14,7 @@ export const updateAccessToken = mutationField("updateAccessToken", {
     where: nonNull(arg({ type: "NameInput" })),
   },
   async resolve(_parent, args, ctx) {
-    if (ctx.type === "login") noLogin();
-    if (ctx.type !== "session" && !writeAccess(ctx.accessToken.accessTokens)) {
+    if (!ctx.permissions.tokens.canWrite) {
       throw new ForbiddenError("You are not allowed to edit access tokens.");
     }
     return ctx.prisma.accessToken.update({
@@ -53,15 +47,18 @@ export const createAccessToken = mutationField("createAccessToken", {
     ),
   },
   async resolve(_parent, args, ctx) {
-    if (ctx.type === "login") noLogin();
-    if (ctx.type !== "session" && !writeAccess(ctx.accessToken.accessTokens)) {
+    if (!ctx.permissions.tokens.canWrite) {
       throw new ForbiddenError("You are not allowed to add access tokens.");
     }
     const { token, tokenHash } = generateToken();
     const accessToken = await ctx.prisma.accessToken.create({
       data: {
         name: args.data.name,
-        tokenHash,
+        token: {
+          create: {
+            tokenHash,
+          },
+        },
         accessTokens: args.data.accessTokens,
         accessVersions: args.data.versions,
         accessConfigs: args.data.configs,
@@ -77,7 +74,7 @@ export const createAccessToken = mutationField("createAccessToken", {
     });
     return {
       ...accessToken,
-      token,
+      plainToken: token,
     };
   },
 });
@@ -92,8 +89,7 @@ export const deleteAccessToken = mutationField("deleteAccessToken", {
     ),
   },
   async resolve(_parent, args, ctx) {
-    if (ctx.type === "login") noLogin();
-    if (ctx.type !== "session" && !writeAccess(ctx.accessToken.accessTokens)) {
+    if (!ctx.permissions.tokens.canWrite) {
       throw new ForbiddenError("You are not allowed to delete access tokens.");
     }
     return ctx.prisma.accessToken.delete({

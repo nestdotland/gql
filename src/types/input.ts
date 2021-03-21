@@ -1,4 +1,4 @@
-import { inputObjectType, objectType } from "nexus";
+import { inputObjectType } from "nexus";
 
 export const NameInput = inputObjectType({
   name: "NameInput",

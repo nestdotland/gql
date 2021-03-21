@@ -1,87 +1,61 @@
-import { AccessToken, PrismaClient, Session } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { ApolloError, AuthenticationError, ExpressContext, SyntaxError } from "apollo-server-express";
 import { hashToken } from "./utils/token";
 import { HOURLY_REQUEST_LIMIT } from "./utils/env";
+import { rejectLogin, UserPermissions } from "./utils/permission";
 
-interface BaseContext {
-  user: string;
+export interface Context {
   prisma: PrismaClient;
+  permissions: UserPermissions;
+  user: string;
+  token: {
+    hash: string;
+  };
 }
-interface ContextSession extends BaseContext {
-  accessToken: AccessToken;
-  type: "token";
-}
-interface ContextToken extends BaseContext {
-  session: Session;
-  type: "session";
-}
-interface ContextLogin extends BaseContext {
-  type: "login";
-}
-export type Context = ContextSession | ContextToken | ContextLogin;
 
 const prisma = new PrismaClient();
 
 /** Auth check on every request */
 export async function context({ req }: ExpressContext): Promise<Context> {
-  // TODO: change headers
   const token = req.headers && req.headers.token;
-  const session = req.headers && req.headers.session;
   const username = req.headers && req.headers.username;
   const password = req.headers && req.headers.password;
 
-  // **** AccessToken ****
+  // **** AccessToken & Session ****
   if (token) {
     if (Array.isArray(token)) {
       throw new SyntaxError("Received an array of tokens. Please provide a string.");
     }
 
+    const tokenHash = hashToken(token);
     const accessToken = await prisma.accessToken.findUnique({
-      where: {
-        tokenHash: hashToken(token),
-      },
+      where: { tokenHash },
+    });
+    const sessionToken = await prisma.session.findUnique({
+      where: { tokenHash },
     });
 
-    if (accessToken === null) {
+    if (accessToken === null && sessionToken === null) {
       throw new AuthenticationError("The given token is invalid.");
     }
+
+    const user = accessToken?.ownerName ?? sessionToken?.userName!;
 
     // no request limit for rest api
-    if (accessToken.ownerName !== "nestdotland") {
-      rateLimiter(accessToken.ownerName);
+    if (user !== "nestdotland") {
+      rateLimiter(user);
     }
 
     return {
       prisma,
-      accessToken,
-      user: accessToken.ownerName,
-      type: "token",
-    };
-  }
-
-  // **** Session ****
-  if (session) {
-    if (Array.isArray(session)) {
-      throw new SyntaxError("Received an array of session tokens. Please provide a string.");
-    }
-
-    const sessionToken = await prisma.session.findUnique({
-      where: {
-        tokenHash: hashToken(session),
+      permissions: new UserPermissions({
+        accessToken,
+        isSession: sessionToken !== null,
+      }),
+      user,
+      token: {
+        hash: tokenHash,
       },
-    });
-
-    if (sessionToken === null) {
-      throw new AuthenticationError("The given token is invalid.");
-    }
-
-    rateLimiter(sessionToken.userName);
-
-    return {
-      prisma,
-      user: sessionToken.userName,
-      session: sessionToken,
-      type: "session",
     };
   }
 
@@ -95,24 +69,29 @@ export async function context({ req }: ExpressContext): Promise<Context> {
     }
 
     const user = await prisma.user.findUnique({
-      where: {
-        name: username,
-      },
+      where: { name: username },
     });
 
     if (user === null) {
       throw new AuthenticationError("The given username doesn't exist.");
     }
-
-    rateLimiter(username);
     if (user.passwordHash !== hashToken(password)) {
       throw new AuthenticationError("Wrong password.");
     }
+    rateLimiter(username);
 
     return {
       prisma,
+      permissions: new UserPermissions({
+        isLogin: true,
+      }),
       user: username,
-      type: "login",
+      token: {
+        get hash() {
+          rejectLogin();
+          return "error";
+        },
+      },
     };
   }
 

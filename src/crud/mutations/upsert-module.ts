@@ -1,7 +1,7 @@
 import { arg, mutationField, nonNull } from "nexus";
 import { ForbiddenError, UserInputError } from "apollo-server-express";
-import { writeAccess } from "../../utils/access";
 import { notNull } from "../../utils/null";
+import { ModulePermissions } from "../../utils/permission";
 
 type NameInput = {
   name: string;
@@ -30,10 +30,6 @@ type ContributorInput = {
   writeConfig?: boolean;
 };
 
-function noLogin(): never {
-  throw new Error("You must get a session token to perform this action.");
-}
-
 export const upsertModule = mutationField("upsertModule", {
   type: nonNull("Module"),
   args: {
@@ -45,7 +41,6 @@ export const upsertModule = mutationField("upsertModule", {
     where: nonNull(arg({ type: "ModuleInput" })),
   },
   async resolve(_parent, args, ctx) {
-    if (ctx.type === "login") noLogin();
     const authorName = args.where.author ?? ctx.user;
     // potential module contributor
     if (authorName !== ctx.user) {
@@ -60,27 +55,18 @@ export const upsertModule = mutationField("upsertModule", {
       if (module === null) {
         throw new ForbiddenError(`Cannot create module on the behalf of user ${args.where.author}.`);
       }
-      const permissions = await ctx.prisma.moduleContributor.findUnique({
-        where: {
-          authorName_moduleName_contributorName: {
-            authorName,
-            moduleName: args.where.name,
-            contributorName: ctx.user,
-          },
-        },
+      const permissions = new ModulePermissions(ctx, {
+        authorName,
+        moduleName: args.where.name,
       });
-      if (!writeAccess(permissions?.accessConfig)) {
+      if (!(await permissions.config).canWrite) {
         throw new ForbiddenError("You are not allowed to edit this module configuration.");
       }
-      if (
-        !writeAccess(permissions?.accessContributors) &&
-        args.data.contributors &&
-        args.data.contributors?.length > 0
-      ) {
+      if (args.data.contributors && args.data.contributors?.length > 0 && !(await permissions.contributors).canWrite) {
         throw new ForbiddenError("You are not allowed to edit contributors.");
       }
     } else {
-      if (ctx.type !== "session" && !writeAccess(ctx.accessToken.accessConfigs)) {
+      if (!ctx.permissions.configs.canWrite) {
         throw new ForbiddenError("You are not allowed to edit this module configuration.");
       }
     }

@@ -17,16 +17,13 @@ export const User = objectType({
     t.model.accessTokens({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.user === user.name &&
-          (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessTokens)))
-          ? originalResolve(user, args, ctx, info)
-          : [];
+        return ctx.user === user.name && ctx.permissions.tokens.canRead ? originalResolve(user, args, ctx, info) : [];
       },
     });
     t.model.sessions({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
-        return ctx.user === user.name && ctx.type === "session" ? originalResolve(user, args, ctx, info) : [];
+        return ctx.user === user.name && ctx.permissions.profile.canWrite ? originalResolve(user, args, ctx, info) : [];
       },
     });
     /** Hide private modules if not authorized */
@@ -34,10 +31,7 @@ export const User = objectType({
       ...modelOptions,
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
-        args.where.private = equalsFalse(
-          ctx.user === user.name &&
-            (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessPrivateConfigs)))
-        );
+        args.where.private = equalsFalse(ctx.user === user.name && ctx.permissions.privateConfigs.canRead);
         return originalResolve(user, args, ctx, info);
       },
     });
@@ -47,10 +41,7 @@ export const User = objectType({
       resolve(user, args, ctx, info, originalResolve) {
         args.where ??= {};
         args.where.module ??= {};
-        args.where.module.private = equalsFalse(
-          ctx.user === user.name &&
-            (ctx.type === "session" || (ctx.type === "token" && readAccess(ctx.accessToken.accessPrivateContributions)))
-        );
+        args.where.module.private = equalsFalse(ctx.user === user.name && ctx.permissions.privateContributions.canRead);
         return originalResolve(user, args, ctx, info);
       },
     });
@@ -140,7 +131,8 @@ export const AccessToken = objectType({
   definition(t) {
     t.model.name();
     t.model.owner();
-    t.string("token", {
+    t.model.token();
+    t.string("plainToken", {
       description: "Only available when creating a token.",
     });
     /* Permissions */
@@ -169,9 +161,16 @@ export const ModuleContributor = objectType({
 export const Session = objectType({
   name: "Session",
   definition(t) {
-    t.model.dateCreated();
-    t.string("token", {
+    t.model.token();
+    t.string("plainToken", {
       description: "Only available when logging in.",
     });
+  },
+});
+
+export const Token = objectType({
+  name: "Token",
+  definition(t) {
+    t.model.dateCreated();
   },
 });

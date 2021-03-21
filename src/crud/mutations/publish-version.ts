@@ -1,8 +1,8 @@
 import { arg, mutationField, nonNull } from "nexus";
 import { ForbiddenError, UserInputError } from "apollo-server-express";
 import semver from "semver";
-import { writeAccess } from "../../utils/access";
 import { notNull } from "../../utils/null";
+import { ModulePermissions } from "../../utils/permission";
 
 export const publishVersion = mutationField("publishVersion", {
   type: nonNull("Version"),
@@ -18,17 +18,16 @@ export const publishVersion = mutationField("publishVersion", {
     const moduleName = args.data.module;
     // potential module contributor
     if (authorName !== ctx.user) {
-      const permissions = await ctx.prisma.moduleContributor.findUnique({
-        where: {
-          authorName_moduleName_contributorName: {
-            authorName,
-            moduleName,
-            contributorName: ctx.user,
-          },
-        },
+      const permissions = new ModulePermissions(ctx, {
+        authorName,
+        moduleName,
       });
-      if (!writeAccess(permissions?.accessVersions)) {
+      if (!(await permissions.versions).canWrite) {
         throw new ForbiddenError("You are not allowed to publish versions for this module.");
+      }
+    } else {
+      if (!ctx.permissions.versions.canWrite) {
+        throw new ForbiddenError("You are not allowed to publish versions");
       }
     }
 

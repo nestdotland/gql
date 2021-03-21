@@ -126,26 +126,6 @@ enum Permission {
   READ_WRITE
 }
 
-model AccessToken {
-  name        String   @db.VarChar(40)
-  tokenHash   String   @unique @db.VarChar(44)
-  dateCreated DateTime @default(now())
-
-  // Permissions
-  accessProfile              Permission @default(NONE) // WRITE only
-  accessTokens               Permission @default(NONE)
-  accessVersions             Permission @default(NONE) // WRITE only
-  accessConfigs              Permission @default(NONE) // WRITE only
-  accessPrivateVersions      Permission @default(NONE)
-  accessPrivateConfigs       Permission @default(NONE)
-  accessPrivateContributions Permission @default(NONE) // READ only
-
-  owner     User   @relation(fields: [ownerName], references: [name])
-  ownerName String @db.VarChar(40)
-
-  @@id([ownerName, name])
-}
-
 model ModuleContributor {
   // Permissions
   accessVersions     Permission @default(NONE)
@@ -161,12 +141,40 @@ model ModuleContributor {
   @@id([authorName, moduleName, contributorName])
 }
 
-model Session {
-  tokenHash   String   @unique @db.VarChar(44)
+// Token unicity
+model Token {
+  tokenHash   String   @id @db.VarChar(44)
   dateCreated DateTime @default(now())
 
-  user     User   @relation(fields: [userName], references: [name])
-  userName String @db.VarChar(40)
+  accessToken AccessToken?
+  session     Session?
+}
 
-  @@id([userName, dateCreated])
+model AccessToken {
+  name String @db.VarChar(40)
+
+  // Permissions
+  accessProfile              Permission @default(NONE) // WRITE only
+  accessTokens               Permission @default(NONE)
+  accessVersions             Permission @default(NONE) // WRITE only
+  accessConfigs              Permission @default(NONE) // WRITE only
+  accessPrivateVersions      Permission @default(NONE)
+  accessPrivateConfigs       Permission @default(NONE)
+  accessPrivateContributions Permission @default(NONE) // READ only
+
+  token     Token  @relation(fields: [tokenHash], references: [tokenHash])
+  tokenHash String @unique @db.VarChar(44)
+  owner     User   @relation(fields: [ownerName], references: [name])
+  ownerName String @db.VarChar(40)
+
+  @@id([ownerName, name])
+}
+
+model Session {
+  token     Token  @relation(fields: [tokenHash], references: [tokenHash])
+  tokenHash String @unique @db.VarChar(44)
+  user      User   @relation(fields: [userName], references: [name])
+  userName  String @db.VarChar(40)
+
+  @@id([userName, tokenHash])
 }
