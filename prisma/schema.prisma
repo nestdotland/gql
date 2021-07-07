@@ -143,7 +143,7 @@ model ModuleContributor {
 
 // Token unicity
 model Token {
-  tokenHash   String   @id @db.VarChar(44)
+  hash        String   @id @db.VarChar(44)
   dateCreated DateTime @default(now())
 
   accessToken AccessToken?
@@ -162,7 +162,7 @@ model AccessToken {
   accessPrivateConfigs       Permission @default(NONE)
   accessPrivateContributions Permission @default(NONE) // READ only
 
-  token     Token  @relation(fields: [tokenHash], references: [tokenHash])
+  token     Token  @relation(fields: [tokenHash], references: [hash])
   tokenHash String @unique @db.VarChar(44)
   owner     User   @relation(fields: [ownerName], references: [name])
   ownerName String @db.VarChar(40)
@@ -171,7 +171,7 @@ model AccessToken {
 }
 
 model Session {
-  token     Token  @relation(fields: [tokenHash], references: [tokenHash])
+  token     Token  @relation(fields: [tokenHash], references: [hash])
   tokenHash String @unique @db.VarChar(44)
   user      User   @relation(fields: [userName], references: [name])
   userName  String @db.VarChar(40)
