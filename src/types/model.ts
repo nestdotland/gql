@@ -20,7 +20,7 @@ export const User = objectType({
     t.model.updatedAt();
 
     t.model.modules(modelOptions);
-    t.model.publishes(modelOptions);
+    t.model.publications(modelOptions);
     t.model.contributions(modelOptions);
     t.model.usageQuota();
     t.model.accessTokens(modelOptions);
@@ -33,7 +33,7 @@ export const Module = objectType({
     t.model.id();
     t.model.authorName(); 
     t.model.name();
-    t.model.fullname();
+    t.model.fullName();
     t.model.description();
     t.model.homepage();
     t.model.repository();
@@ -145,20 +145,18 @@ export const DevConfig = objectType({
     t.model.updatedAt();
 
     t.model.module();
-    t.model.hooks();
+    t.model.hooks(modelOptions);
   },
 });
 
-export const DevConfigHooks = objectType({
-  name: "DevConfigHooks",
+export const DevConfigHook = objectType({
+  name: "DevConfigHook",
   definition(t) {
     t.model.id();
     t.model.authorName();
     t.model.moduleName();
-    t.model.prePack();
-    t.model.postPack();
-    t.model.prePublish();
-    t.model.postPublish();
+    t.model.key();
+    t.model.value();
     t.model.updatedAt();
 
     t.model.config();
@@ -290,22 +288,8 @@ export const Contribution = objectType({
   },
 });
 
-export const Permission = enumType({
-  name: "Permission",
-  members: [
-    "USER_READ",
-    "USER_WRITE",
-    "MODULE_READ",
-    "MODULE_WRITE",
-    "MODULE_PUBLISH",
-    "PRIVATE_MODULE_READ",
-    "PRIVATE_MODULE_WRITE",
-    "PRIVATE_MODULE_PUBLISH",
-  ],
-});
-
-export const AccessTokens = objectType({
-  name: "AccessTokens",
+export const AccessToken = objectType({
+  name: "AccessToken",
   definition(t) {
     t.model.id();
     t.model.username();

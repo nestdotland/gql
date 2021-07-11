@@ -26,7 +26,7 @@ export const Query = queryType({
     t.crud.publishConfigs(modelOptions);
     t.crud.devConfig(),
     t.crud.devConfigs(modelOptions),
-    t.crud.devConfigHooks();
+    t.crud.devConfigHook();
     t.crud.usageQuota();
     t.crud.usageQuotas(modelOptions);
     t.crud.usageQuotaApi();
@@ -43,7 +43,8 @@ export const Query = queryType({
     t.crud.thirdPartyDependencyGraphs(modelOptions);
     t.crud.contribution();
     t.crud.contributions(modelOptions);
-    t.crud.accessTokens();
+    t.crud.accessToken();
+    t.crud.accessTokens(modelOptions);
   },
 });
 

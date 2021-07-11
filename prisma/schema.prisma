@@ -21,10 +21,10 @@ model User {
 
   // Relationships
   modules       Module[]       @relation("rModuleToAuthor")
-  publishes     Version[]      @relation("rVersionToUser") // rename to publication
-  contributions Contribution[] @relation("ContributionToUser")
+  publications  Version[]      @relation("rVersionToUser")
+  contributions Contribution[] @relation("rContributionToUser")
   usageQuota    UsageQuota?    @relation("rUsageQuotaToUser")
-  accessTokens  AccessTokens[] @relation("rAccessTokensToUser")
+  accessTokens  AccessToken[]  @relation("rAccessTokensToUser")
 
   // Primary Key
   @@id([username])
@@ -34,8 +34,8 @@ model Module {
   // Properties
   id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   authorName  String   @db.VarChar(64)
-  name        String   @db.VarChar(64)
-  fullname    String?  @db.VarChar(64)
+  name        String   @db.VarChar(64) // inconsistent with User
+  fullName    String?  @db.VarChar(64)
   description String?
   homepage    String?
   repository  String?
@@ -53,7 +53,7 @@ model Module {
 
   // Relationships
   versions      Version[]      @relation("rVersionToModule")
-  contributors  Contribution[] @relation("ContributionToModule")
+  contributors  Contribution[] @relation("rContributionToModule")
   author        User           @relation("rModuleToAuthor", fields: [authorName], references: [username])
   tags          Tag[]          @relation("rTagToModule")
   publishConfig PublishConfig? @relation("rPublishConfigToModule")
@@ -138,8 +138,8 @@ model PublishConfig {
   moduleName String   @db.VarChar(64)
   main       String?
   bin        String[]
-  lockfile   String?
-  importMap  String?
+  lockfile   String? // absent from Version
+  importMap  String? // absent from Version
   updatedAt  DateTime @default(now()) @updatedAt
 
   // Relationships
@@ -159,28 +159,37 @@ model DevConfig {
 
   // Relationships
   module Module          @relation("rDevConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
-  hooks  DevConfigHooks? @relation("rDevConfigToHooks")
+  hooks  DevConfigHook[] @relation("rDevConfigToHooks")
 
   // Primary Key
   @@id([authorName, moduleName])
 }
 
-model DevConfigHooks {
+enum HookMode {
+  pre
+  post
+}
+
+enum HookKey {
+  pack
+  publish
+}
+
+model DevConfigHook {
   // Properties
-  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName  String   @db.VarChar(64)
-  moduleName  String   @db.VarChar(64)
-  prePack     String?
-  postPack    String?
-  prePublish  String?
-  postPublish String?
-  updatedAt   DateTime @default(now()) @updatedAt
+  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName String   @db.VarChar(64)
+  moduleName String   @db.VarChar(64)
+  key        HookKey
+  mode       HookMode
+  value      String
+  updatedAt  DateTime @default(now()) @updatedAt
 
   // Relationships
   config DevConfig @relation("rDevConfigToHooks", fields: [authorName, moduleName], references: [authorName, moduleName])
 
   // Primary Key
-  @@id([authorName, moduleName])
+  @@id([authorName, moduleName, key])
   @@map("Hooks")
 }
 
@@ -320,36 +329,37 @@ model Contribution {
   moduleName      String @db.VarChar(64)
 
   // Relationships
-  contributor User   @relation("ContributionToUser", fields: [contributorName], references: [username])
-  module      Module @relation("ContributionToModule", fields: [moduleAuthor, moduleName], references: [authorName, name])
+  contributor User   @relation("rContributionToUser", fields: [contributorName], references: [username])
+  module      Module @relation("rContributionToModule", fields: [moduleAuthor, moduleName], references: [authorName, name])
 
   // Primary Key
   @@id([contributorName, moduleAuthor, moduleName])
 }
 
-enum Permission {
-  USER_READ
-  USER_WRITE
-  MODULE_READ
-  MODULE_WRITE
-  MODULE_PUBLISH
-  PRIVATE_MODULE_READ
-  PRIVATE_MODULE_WRITE
-  PRIVATE_MODULE_PUBLISH
-}
+// enum Permission {
+//   USER_READ
+//   USER_WRITE
+//   MODULE_READ
+//   MODULE_WRITE
+//   MODULE_PUBLISH
+//   PRIVATE_MODULE_READ
+//   PRIVATE_MODULE_WRITE
+//   PRIVATE_MODULE_PUBLISH
+// }
 
-model AccessTokens { // rename to AccessToken
+model AccessToken {
   // Properties
-  id          String       @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username    String       @db.VarChar(64)
-  sha256      String       @db.Char(64)
-  permissions Permission[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now()) @updatedAt
+  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username    String   @db.VarChar(64)
+  sha256      String   @db.Char(64)
+  permissions String   @db.Bit(16) @default("0000000000000000")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   // Relationships
   user User @relation("rAccessTokensToUser", fields: [username], references: [username])
 
   // Primary Key
   @@id([sha256])
+  @@map("AccessTokens")
 }

@@ -54,7 +54,7 @@ export async function seed() {
     .then(console.log)
     .catch(console.error);
 
-  await prisma.accessTokens
+  await prisma.accessToken
     .createMany({
       skipDuplicates: true,
       data: users
@@ -79,7 +79,7 @@ export async function seed() {
         return {
           name: moduleData.name,
           authorName: moduleData.author,
-          fullname: moduleData.fullname,
+          fullName: moduleData.fullname,
           homepage: moduleData.homepage,
         };
       }),
@@ -101,13 +101,16 @@ export async function seed() {
     .then(console.log)
     .catch(console.error);
 
-  await prisma.devConfigHooks
+  await prisma.devConfigHook
     .createMany({
       skipDuplicates: true,
       data: modules.map((moduleData) => {
         return {
           moduleName: moduleData.name,
           authorName: moduleData.author,
+          key: "pack" as const,
+          mode: "pre" as const,
+          value: "command -h",
         };
       }),
     })
