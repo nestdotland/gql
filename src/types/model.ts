@@ -1,5 +1,5 @@
-import { objectType } from "nexus";
-import { readAccess } from "../utils/access";
+import { enumType, objectType } from "nexus";
+// import { readAccess } from "../utils/access";
 import { modelOptions } from "../utils/model";
 
 function equalsFalse(bool: boolean) {
@@ -9,168 +9,311 @@ function equalsFalse(bool: boolean) {
 export const User = objectType({
   name: "User",
   definition(t) {
+    t.model.id();
+    t.model.username();
     t.model.name();
-    t.model.fullName();
-    t.model.bioText();
-    t.model.email();
-    /** Hide access tokens if not authorized */
-    t.model.accessTokens({
-      ...modelOptions,
-      resolve(user, args, ctx, info, originalResolve) {
-        return ctx.user === user.name && ctx.permissions.tokens.canRead ? originalResolve(user, args, ctx, info) : [];
-      },
-    });
-    t.model.sessions({
-      ...modelOptions,
-      resolve(user, args, ctx, info, originalResolve) {
-        return ctx.user === user.name && ctx.permissions.profile.canWrite ? originalResolve(user, args, ctx, info) : [];
-      },
-    });
-    /** Hide private modules if not authorized */
-    t.model.modules({
-      ...modelOptions,
-      resolve(user, args, ctx, info, originalResolve) {
-        args.where ??= {};
-        args.where.private = equalsFalse(ctx.user === user.name && ctx.permissions.privateConfigs.canRead);
-        return originalResolve(user, args, ctx, info);
-      },
-    });
-    /** Hide private contributions if not authorized */
-    t.model.contributions({
-      ...modelOptions,
-      resolve(user, args, ctx, info, originalResolve) {
-        args.where ??= {};
-        args.where.module ??= {};
-        args.where.module.private = equalsFalse(ctx.user === user.name && ctx.permissions.privateContributions.canRead);
-        return originalResolve(user, args, ctx, info);
-      },
-    });
+    t.model.avatar();
+    t.model.bio();
+    t.model.funding();
+    t.model.verified();
+    t.model.createdAt();
+    t.model.updatedAt();
+
+    t.model.modules(modelOptions);
+    t.model.publishes(modelOptions);
+    t.model.contributions(modelOptions);
+    t.model.usageQuota();
+    t.model.accessTokens(modelOptions);
   },
 });
 
 export const Module = objectType({
   name: "Module",
   definition(t) {
+    t.model.id();
+    t.model.authorName(); 
     t.model.name();
-    t.model.fullName();
+    t.model.fullname();
     t.model.description();
     t.model.homepage();
     t.model.repository();
-    t.model.issues();
+    t.model.bugs();
+    t.model.funding();
     t.model.license();
-    t.model.license();
+    t.model.logo();
+    t.model.keywords();
+    t.model.verified();
+    t.model.malicious();
     t.model.private();
     t.model.unlisted();
-    t.model.ignore();
-    t.model.keywords();
-    t.model.main();
-    t.model.bin();
-    t.model.logo();
-    t.model.lastSync();
-    t.model.author();
-    t.model.contributors(modelOptions);
-    t.model.tags(modelOptions);
-    t.model.versions(modelOptions);
-    t.model.latest();
-    t.model.hooks();
-  },
-});
+    t.model.createdAt();
+    t.model.updatedAt();
 
-export const Hooks = objectType({
-  name: "Hooks",
-  definition(t) {
-    t.model.presync();
-    t.model.postsync();
-    t.model.prepublish();
-    t.model.postpublish();
+    t.model.versions(modelOptions);
+    t.model.contributors(modelOptions);
+    t.model.author();
+    t.model.tags(modelOptions);
+    t.model.publishConfig();
+    t.model.devConfig();
   },
 });
 
 export const Version = objectType({
   name: "Version",
   definition(t) {
-    t.model.version();
-    t.model.published();
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
+    t.model.name();
+    t.model.publisherName();
     t.model.deprecated();
     t.model.vulnerable();
+    t.model.unlisted();
     t.model.supportedDeno();
-    t.model.dependencies();
     t.model.main();
     t.model.bin();
-    t.model.logo();
+    t.model.createdAt();
+    t.model.updatedAt();
+
+    t.model.files(modelOptions);
+    t.model.tag(modelOptions);
     t.model.module();
     t.model.publisher();
-    t.model.tag();
-    t.model.files(modelOptions);
+    t.model.dependents(modelOptions);
+    t.model.dependencies(modelOptions);
+    t.model.taggedDependencies(modelOptions);
+    t.model.thirdPartyDependencies(modelOptions);
   },
 });
 
 export const Tag = objectType({
   name: "Tag",
   definition(t) {
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
     t.model.name();
+    t.model.versionName();
+    t.model.createdAt();
+    t.model.updatedAt();
+
     t.model.module();
     t.model.version();
+    t.model.dependents(modelOptions);
   },
 });
 
 export const File = objectType({
   name: "File",
   definition(t) {
-    t.model.name();
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
+    t.model.versionName();
     t.model.path();
-    t.model.type();
-    t.model.hash();
-    t.model.txID();
+    t.model.url();
+    t.model.mimeType();
+    t.model.createdAt();
+
     t.model.version();
   },
 });
 
-export const AccessToken = objectType({
-  name: "AccessToken",
+export const PublishConfig = objectType({
+  name: "PublishConfig",
   definition(t) {
-    t.model.name();
-    t.model.owner();
-    t.model.token();
-    t.string("plainToken", {
-      description: "Only available when creating a token.",
-    });
-    /* Permissions */
-    t.model.accessProfile();
-    t.model.accessTokens();
-    t.model.accessVersions();
-    t.model.accessConfigs();
-    t.model.accessPrivateVersions();
-    t.model.accessPrivateConfigs();
-    t.model.accessPrivateContributions();
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
+    t.model.main();
+    t.model.bin();
+    t.model.lockfile();
+    t.model.importMap();
+    t.model.updatedAt();
+
+    t.model.module();
   },
 });
 
-export const ModuleContributor = objectType({
-  name: "ModuleContributor",
+export const DevConfig = objectType({
+  name: "DevConfig",
   definition(t) {
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
+    t.model.ignore();
+    t.model.updatedAt();
+
+    t.model.module();
+    t.model.hooks();
+  },
+});
+
+export const DevConfigHooks = objectType({
+  name: "DevConfigHooks",
+  definition(t) {
+    t.model.id();
+    t.model.authorName();
+    t.model.moduleName();
+    t.model.prePack();
+    t.model.postPack();
+    t.model.prePublish();
+    t.model.postPublish();
+    t.model.updatedAt();
+
+    t.model.config();
+  },
+});
+
+export const UsageQuota = objectType({
+  name: "UsageQuota",
+  definition(t) {
+    t.model.id();
+    t.model.username();
+
+    t.model.user();
+    t.model.api();
+    t.model.publish();
+  },
+});
+
+export const UsageQuotaApi = objectType({
+  name: "UsageQuotaApi",
+  definition(t) {
+    t.model.id();
+    t.model.username();
+    t.model.limit();
+    t.model.used();
+    t.model.remaining();
+    t.model.reset();
+
+    t.model.quota();
+  },
+});
+
+export const UsageQuotaPublish = objectType({
+  name: "UsageQuotaPublish",
+  definition(t) {
+    t.model.id();
+    t.model.username();
+    t.model.limit();
+    t.model.used();
+    t.model.remaining();
+    t.model.size();
+    t.model.private();
+    t.model.reset();
+
+    t.model.quota();
+  },
+});
+
+export const DependencyGraph = objectType({
+  name: "DependencyGraph",
+  definition(t) {
+    t.model.id();
+    t.model.dependentAuthor();
+    t.model.dependentName();
+    t.model.dependentVersion();
+    t.model.dependencyAuthor();
+    t.model.dependencyName();
+    t.model.dependencyVersion();
+
+    t.model.dependent();
+    t.model.dependency();
+  },
+});
+
+export const TaggedDependencyGraph = objectType({
+  name: "TaggedDependencyGraph",
+  definition(t) {
+    t.model.id();
+    t.model.dependentAuthor();
+    t.model.dependentName();
+    t.model.dependentVersion();
+    t.model.dependencyAuthor();
+    t.model.dependencyName();
+    t.model.dependencyTag();
+
+    t.model.dependent();
+    t.model.dependency();
+  },
+});
+
+export const ThirdPartyModule = objectType({
+  name: "ThirdPartyModule",
+  definition(t) {
+    t.model.id();
+    t.model.hostname();
+    t.model.path();
+
+    t.model.host();
+    t.model.dependents(modelOptions);
+  },
+});
+
+export const ThirdPartyHost = objectType({
+  name: "ThirdPartyHost",
+  definition(t) {
+    t.model.id();
+    t.model.hostname();
+    t.model.verified();
+
+    t.model.modules(modelOptions);
+  },
+});
+
+export const ThirdPartyDependencyGraph = objectType({
+  name: "ThirdPartyDependencyGraph",
+  definition(t) {
+    t.model.id();
+    t.model.dependentAuthor();
+    t.model.dependentName();
+    t.model.dependentVersion();
+    t.model.dependencyHost();
+    t.model.dependencyPath();
+
+    t.model.dependent();
+    t.model.dependency();
+  },
+});
+
+export const Contribution = objectType({
+  name: "Contribution",
+  definition(t) {
+    t.model.id();
+    t.model.contributorName();
+    t.model.moduleAuthor();
+    t.model.moduleName();
+
     t.model.contributor();
     t.model.module();
-    /* Permissions */
-    t.model.accessVersions();
-    t.model.accessConfig();
-    t.model.accessContributors();
   },
 });
 
-export const Session = objectType({
-  name: "Session",
-  definition(t) {
-    t.model.token();
-    t.string("plainToken", {
-      description: "Only available when logging in.",
-    });
-  },
+export const Permission = enumType({
+  name: "Permission",
+  members: [
+    "USER_READ",
+    "USER_WRITE",
+    "MODULE_READ",
+    "MODULE_WRITE",
+    "MODULE_PUBLISH",
+    "PRIVATE_MODULE_READ",
+    "PRIVATE_MODULE_WRITE",
+    "PRIVATE_MODULE_PUBLISH",
+  ],
 });
 
-export const Token = objectType({
-  name: "Token",
+export const AccessTokens = objectType({
+  name: "AccessTokens",
   definition(t) {
-    t.model.dateCreated();
+    t.model.id();
+    t.model.username();
+    t.model.sha256();
+    t.model.permissions();
+    t.model.createdAt();
+    t.model.updatedAt();
+
+    t.model.user();
   },
 });

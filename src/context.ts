@@ -1,23 +1,29 @@
 import { PrismaClient } from "@prisma/client";
-import { ApolloError, AuthenticationError, ExpressContext, SyntaxError } from "apollo-server-express";
-import { hashToken } from "./utils/token";
-import { HOURLY_REQUEST_LIMIT } from "./utils/env";
-import { rejectLogin, UserPermissions } from "./utils/permission";
+import {
+  ApolloError,
+  AuthenticationError,
+  ExpressContext,
+  SyntaxError,
+} from "apollo-server-express";
+// import { hashToken } from "./utils/token";
+// import { HOURLY_REQUEST_LIMIT } from "./utils/env";
+// import { rejectLogin, UserPermissions } from "./utils/permission";
 
 export interface Context {
   prisma: PrismaClient;
-  permissions: UserPermissions;
+  /* permissions: UserPermissions;
   user: string;
   token: {
     hash: string;
-  };
+  }; */
 }
 
 const prisma = new PrismaClient();
 
 /** Auth check on every request */
 export async function context({ req }: ExpressContext): Promise<Context> {
-  const token = req.headers && req.headers.token;
+  return { prisma };
+  /* const token = req.headers && req.headers.token;
   const username = req.headers && req.headers.username;
   const password = req.headers && req.headers.password;
 
@@ -93,12 +99,12 @@ export async function context({ req }: ExpressContext): Promise<Context> {
         },
       },
     };
-  }
+  } */
 
-  throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
+  // throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
 }
 
-async function rateLimiter(name: string) {
+/* async function rateLimiter(name: string) {
   const user = await prisma.user.findUnique({
     where: {
       name,
@@ -126,3 +132,4 @@ async function rateLimiter(name: string) {
     },
   });
 }
+ */

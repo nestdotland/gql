@@ -1,36 +1,10 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "alwaysStrict": true,
-    "declaration": false,
     "sourceMap": false,
-    "esModuleInterop": true,
-    "lib": ["ES6", "DOM"],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "noEmitOnError": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "pretty": true,
+    "rootDirs": ["src", "prisma"],
     "outDir": "dist",
-    "removeComments": true,
-    "resolveJsonModule": true,
-    "strict": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "target": "ES6",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/utils/*": ["utils/*"],
-      "@/src/*": ["src/*"],
-      "@/lib/*": ["lib/*"]
-    }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+    "strict": false,
+    "lib": ["esnext"],
+    "esModuleInterop": true
+  }
 }

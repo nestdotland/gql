@@ -10,7 +10,7 @@ const nullGuard = nullabilityGuardPlugin({
     console.error(`Error: Saw a null value for non-null field ${info.parentType.name}.${info.fieldName}`);
   },
   fallbackValues: {
-    Permission: () => "NONE",
+    // Permission: () => "NONE",
     Int: () => 0,
     String: () => "",
     Boolean: () => false,

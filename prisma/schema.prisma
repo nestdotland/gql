@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,170 +8,348 @@ datasource db {
 }
 
 model User {
-  name         String  @id @db.VarChar(40)
-  fullName     String? @db.VarChar(100)
-  bioText      String?
-  email        String? @unique @db.VarChar(100)
-  passwordHash String  @db.VarChar(44)
-  logs         Int[]
+  // Properties
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid // TODO(@maximousblk): remove @default() in prod
+  username  String   @db.VarChar(64)
+  name      String?  @db.VarChar(64)
+  avatar    String?
+  bio       String?
+  funding   String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-  accessTokens  AccessToken[]
-  sessions      Session[]
-  modules       Module[]
-  contributions ModuleContributor[] @relation("ContributesTo")
-  publications  Version[]           @relation("Publisher")
+  // Relationships
+  modules       Module[]       @relation("rModuleToAuthor")
+  publishes     Version[]      @relation("rVersionToUser") // rename to publication
+  contributions Contribution[] @relation("ContributionToUser")
+  usageQuota    UsageQuota?    @relation("rUsageQuotaToUser")
+  accessTokens  AccessTokens[] @relation("rAccessTokensToUser")
+
+  // Primary Key
+  @@id([username])
 }
 
 model Module {
-  name        String   @db.VarChar(40)
-  fullName    String?  @db.VarChar(100)
+  // Properties
+  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName  String   @db.VarChar(64)
+  name        String   @db.VarChar(64)
+  fullname    String?  @db.VarChar(64)
   description String?
   homepage    String?
   repository  String?
-  issues      String?
-  license     String?  @default("UNKNOWN")
-  private     Boolean? @default(false)
-  unlisted    Boolean? @default(false)
-  ignore      String   @default(".*")
-  keywords    String[]
-  main        String?
-  bin         String[]
+  bugs        String?
+  funding     String?
+  license     String?  @db.VarChar(64)
   logo        String?
-  lastSync    DateTime @updatedAt
+  keywords    String[]
+  verified    Boolean  @default(false)
+  malicious   Boolean  @default(false)
+  private     Boolean  @default(false)
+  unlisted    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
-  author           User                @relation(fields: [authorName], references: [name])
-  authorName       String              @db.VarChar(40)
-  contributors     ModuleContributor[] @relation("Contributors")
-  tags             Tag[]
-  versions         Version[]           @relation("Versions")
-  latest           Version?            @relation(fields: [latestAuthorName, latestModuleName, latestTag], references: [authorName, moduleName, version])
-  latestAuthorName String?             @db.VarChar(40)
-  latestModuleName String?             @db.VarChar(40)
-  latestTag        String?             @db.VarChar(40)
-  hooks            Hooks?
+  // Relationships
+  versions      Version[]      @relation("rVersionToModule")
+  contributors  Contribution[] @relation("ContributionToModule")
+  author        User           @relation("rModuleToAuthor", fields: [authorName], references: [username])
+  tags          Tag[]          @relation("rTagToModule")
+  publishConfig PublishConfig? @relation("rPublishConfigToModule")
+  devConfig     DevConfig?     @relation("rDevConfigToModule")
 
+  // Primary Key
   @@id([authorName, name])
 }
 
-model Hooks {
-  presync     String?
-  postsync    String?
-  prepublish  String?
-  postpublish String?
-
-  module     Module @relation(fields: [authorName, moduleName], references: [authorName, name])
-  authorName String @db.VarChar(40)
-  moduleName String @db.VarChar(40)
-
-  @@id([authorName, moduleName])
-}
-
 model Version {
-  version       String   @db.VarChar(40)
-  published     DateTime @default(now())
-  deprecated    Boolean? @default(false)
-  vulnerable    Boolean? @default(false)
-  supportedDeno String[]
-  dependencies  String[]
+  // Properties
+  id            String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName    String   @db.VarChar(64)
+  moduleName    String   @db.VarChar(64)
+  name          String   @db.VarChar(64)
+  publisherName String   @db.VarChar(64)
+  deprecated    Boolean  @default(false)
+  vulnerable    Boolean  @default(false)
+  unlisted      Boolean  @default(false)
+  supportedDeno String[] // probably be replaced by an `engines` object
   main          String?
   bin           String[]
-  logo          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
 
-  module        Module  @relation("Versions", fields: [authorName, moduleName], references: [authorName, name])
-  authorName    String  @db.VarChar(40)
-  moduleName    String  @db.VarChar(40)
-  publisher     User    @relation("Publisher", fields: [publisherName], references: [name])
-  publisherName String  @db.VarChar(40)
-  tag           Tag?
-  latestOf      Module?
-  files         File[]
+  // Relationships
+  files                  File[]                      @relation("rFileToVersion")
+  tag                    Tag[]                       @relation("rTagToVersion")
+  module                 Module                      @relation("rVersionToModule", fields: [authorName, moduleName], references: [authorName, name])
+  publisher              User                        @relation("rVersionToUser", fields: [publisherName], references: [username])
+  dependents             DependencyGraph[]           @relation("rDependentToDependency")
+  dependencies           DependencyGraph[]           @relation("rDependencyToDependent")
+  taggedDependencies     TaggedDependencyGraph[]     @relation("rTaggedDependencyToDependent")
+  thirdPartyDependencies ThirdPartyDependencyGraph[] @relation("rVersionToThirdPartyDependency")
 
-  @@id([authorName, moduleName, version])
+  // Primary Key
+  @@id([authorName, moduleName, name])
 }
 
 model Tag {
-  name String @db.VarChar(40)
+  // Properties
+  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName  String   @db.VarChar(64)
+  moduleName  String   @db.VarChar(64)
+  name        String   @db.VarChar(64)
+  versionName String   @db.VarChar(64)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
-  module     Module  @relation(fields: [authorName, moduleName], references: [authorName, name])
-  version    Version @relation(fields: [authorName, moduleName, versionTag], references: [authorName, moduleName, version])
-  authorName String  @db.VarChar(40)
-  moduleName String  @db.VarChar(40)
-  versionTag String  @db.VarChar(40)
 
+  // Relationships
+  module     Module                  @relation("rTagToModule", fields: [authorName, moduleName], references: [authorName, name])
+  version    Version                 @relation("rTagToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
+  dependents TaggedDependencyGraph[] @relation("rTaggedDependentToDependency")
+
+  // Primary Key
   @@id([authorName, moduleName, name])
 }
 
 model File {
-  name String @db.VarChar(100)
-  path String
-  type String @db.VarChar(100)
-  hash String // TODO: set length
-  txID String // TODO: set length
+  // Properties
+  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName  String   @db.VarChar(64)
+  moduleName  String   @db.VarChar(64)
+  versionName String   @db.VarChar(64)
+  path        String
+  url         String
+  mimeType    String?  @db.VarChar(64)
+  createdAt   DateTime @default(now())
 
-  version    Version @relation(fields: [authorName, moduleName, versionTag], references: [authorName, moduleName, version])
-  authorName String  @db.VarChar(40)
-  moduleName String  @db.VarChar(40)
-  versionTag String  @db.VarChar(40)
+  // Relationships
+  version Version @relation("rFileToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
 
-  @@id([authorName, moduleName, versionTag, path])
+  // Primary Key
+  @@id([authorName, moduleName, versionName, path])
+}
+
+model PublishConfig {
+  // Properties
+  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName String   @db.VarChar(64)
+  moduleName String   @db.VarChar(64)
+  main       String?
+  bin        String[]
+  lockfile   String?
+  importMap  String?
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  // Relationships
+  module Module @relation("rPublishConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
+
+  // Primary Key
+  @@id([authorName, moduleName])
+}
+
+model DevConfig {
+  // Properties
+  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName String   @db.VarChar(64)
+  moduleName String   @db.VarChar(64)
+  ignore     String[]
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  // Relationships
+  module Module          @relation("rDevConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
+  hooks  DevConfigHooks? @relation("rDevConfigToHooks")
+
+  // Primary Key
+  @@id([authorName, moduleName])
+}
+
+model DevConfigHooks {
+  // Properties
+  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  authorName  String   @db.VarChar(64)
+  moduleName  String   @db.VarChar(64)
+  prePack     String?
+  postPack    String?
+  prePublish  String?
+  postPublish String?
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  // Relationships
+  config DevConfig @relation("rDevConfigToHooks", fields: [authorName, moduleName], references: [authorName, moduleName])
+
+  // Primary Key
+  @@id([authorName, moduleName])
+  @@map("Hooks")
+}
+
+model UsageQuota {
+  // Properties
+  id       String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username String @db.VarChar(64)
+
+  // Relationships
+  user    User               @relation("rUsageQuotaToUser", fields: [username], references: [username])
+  api     UsageQuotaApi?     @relation("rUsageQuotaToUsageQuotaApi")
+  publish UsageQuotaPublish? @relation("rUsageQuotaToUsageQuotaPublish")
+
+  // Primary Key
+  @@id([username])
+}
+
+model UsageQuotaApi {
+  // Properties
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username  String   @db.VarChar(64)
+  limit     Int      @default(60)
+  used      Int      @default(0)
+  remaining Int      @default(60)
+  reset     DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+
+  // Relationships
+  quota UsageQuota @relation("rUsageQuotaToUsageQuotaApi", fields: [username], references: [username])
+
+  // Primary Key
+  @@id([username])
+}
+
+model UsageQuotaPublish {
+  // Properties
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username  String   @db.VarChar(64)
+  limit     Int      @default(20)
+  used      Int      @default(0)
+  remaining Int      @default(20)
+  size      Int      @default(200000000)
+  private   Boolean  @default(false)
+  reset     DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+
+  // Relationships
+  quota UsageQuota @relation("rUsageQuotaToUsageQuotaPublish", fields: [username], references: [username])
+
+  // Primary Key
+  @@id([username])
+}
+
+model DependencyGraph {
+  // Properties
+  id                String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  dependentAuthor   String @db.VarChar(64)
+  dependentName     String @db.VarChar(64)
+  dependentVersion  String @db.VarChar(64)
+  dependencyAuthor  String @db.VarChar(64)
+  dependencyName    String @db.VarChar(64)
+  dependencyVersion String @db.VarChar(64)
+
+  // Relationships
+  dependent  Version @relation("rDependencyToDependent", fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
+  dependency Version @relation("rDependentToDependency", fields: [dependencyAuthor, dependencyName, dependencyVersion], references: [authorName, moduleName, name])
+
+  // Primary Key
+  @@id([dependentAuthor, dependentName, dependentVersion, dependencyAuthor, dependencyName, dependencyVersion])
+}
+
+model TaggedDependencyGraph {
+  // Properties
+  id               String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  dependentAuthor  String @db.VarChar(64)
+  dependentName    String @db.VarChar(64)
+  dependentVersion String @db.VarChar(64)
+  dependencyAuthor String @db.VarChar(64)
+  dependencyName   String @db.VarChar(64)
+  dependencyTag    String @db.VarChar(64)
+
+  // Relationships
+  dependent  Version @relation("rTaggedDependencyToDependent", fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
+  dependency Tag     @relation("rTaggedDependentToDependency", fields: [dependencyAuthor, dependencyName, dependencyTag], references: [authorName, moduleName, name])
+
+  // Primary Key
+  @@id([dependentAuthor, dependentName, dependentVersion, dependencyAuthor, dependencyName, dependencyTag])
+}
+
+model ThirdPartyModule {
+  // Properties
+  id       String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  hostname String
+  path     String
+
+  // Relationships
+  host       ThirdPartyHost              @relation("rThirdPartyModuleToThirdPartyHost", fields: [hostname], references: [hostname])
+  dependents ThirdPartyDependencyGraph[] @relation("rThirdPartyModuleToThirdPartyDependency")
+
+  // Primary Key
+  @@id([path, hostname])
+}
+
+model ThirdPartyHost {
+  // Properties
+  id       String  @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  hostname String
+  verified Boolean @default(false)
+
+  // Relationships
+  modules ThirdPartyModule[] @relation("rThirdPartyModuleToThirdPartyHost")
+
+  // Primary Key
+  @@id([hostname])
+}
+
+model ThirdPartyDependencyGraph {
+  // Properties
+  id               String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  dependentAuthor  String @db.VarChar(64)
+  dependentName    String @db.VarChar(64)
+  dependentVersion String @db.VarChar(64)
+  dependencyHost   String
+  dependencyPath   String
+
+  // Relationships
+  dependent  Version          @relation("rVersionToThirdPartyDependency", fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
+  dependency ThirdPartyModule @relation("rThirdPartyModuleToThirdPartyDependency", fields: [dependencyHost, dependencyPath], references: [hostname, path])
+
+  // Primary Key
+  @@id([dependentAuthor, dependentName, dependentVersion, dependencyHost, dependencyPath])
+}
+
+model Contribution {
+  // Properties
+  id              String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  contributorName String @db.VarChar(64)
+  moduleAuthor    String @db.VarChar(64)
+  moduleName      String @db.VarChar(64)
+
+  // Relationships
+  contributor User   @relation("ContributionToUser", fields: [contributorName], references: [username])
+  module      Module @relation("ContributionToModule", fields: [moduleAuthor, moduleName], references: [authorName, name])
+
+  // Primary Key
+  @@id([contributorName, moduleAuthor, moduleName])
 }
 
 enum Permission {
-  NONE
-  READ
-  WRITE
-  READ_WRITE
+  USER_READ
+  USER_WRITE
+  MODULE_READ
+  MODULE_WRITE
+  MODULE_PUBLISH
+  PRIVATE_MODULE_READ
+  PRIVATE_MODULE_WRITE
+  PRIVATE_MODULE_PUBLISH
 }
 
-model ModuleContributor {
-  // Permissions
-  accessVersions     Permission @default(NONE)
-  accessConfig       Permission @default(NONE)
-  accessContributors Permission @default(NONE) // WRITE only
+model AccessTokens { // rename to AccessToken
+  // Properties
+  id          String       @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username    String       @db.VarChar(64)
+  sha256      String       @db.Char(64)
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
 
-  contributor     User   @relation("ContributesTo", fields: [contributorName], references: [name])
-  contributorName String @db.VarChar(40)
-  module          Module @relation("Contributors", fields: [authorName, moduleName], references: [authorName, name])
-  authorName      String @db.VarChar(40)
-  moduleName      String @db.VarChar(40)
+  // Relationships
+  user User @relation("rAccessTokensToUser", fields: [username], references: [username])
 
-  @@id([authorName, moduleName, contributorName])
-}
-
-// Token unicity
-model Token {
-  hash        String   @id @db.VarChar(44)
-  dateCreated DateTime @default(now())
-
-  accessToken AccessToken?
-  session     Session?
-}
-
-model AccessToken {
-  name String @db.VarChar(40)
-
-  // Permissions
-  accessProfile              Permission @default(NONE) // WRITE only
-  accessTokens               Permission @default(NONE)
-  accessVersions             Permission @default(NONE) // WRITE only
-  accessConfigs              Permission @default(NONE) // WRITE only
-  accessPrivateVersions      Permission @default(NONE)
-  accessPrivateConfigs       Permission @default(NONE)
-  accessPrivateContributions Permission @default(NONE) // READ only
-
-  token     Token  @relation(fields: [tokenHash], references: [hash])
-  tokenHash String @unique @db.VarChar(44)
-  owner     User   @relation(fields: [ownerName], references: [name])
-  ownerName String @db.VarChar(40)
-
-  @@id([ownerName, name])
-}
-
-model Session {
-  token     Token  @relation(fields: [tokenHash], references: [hash])
-  tokenHash String @unique @db.VarChar(44)
-  user      User   @relation(fields: [userName], references: [name])
-  userName  String @db.VarChar(40)
-
-  @@id([userName, tokenHash])
+  // Primary Key
+  @@id([sha256])
 }
