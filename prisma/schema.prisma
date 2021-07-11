@@ -76,6 +76,8 @@ model Version {
   supportedDeno String[] // probably be replaced by an `engines` object
   main          String?
   bin           String[]
+  lockfile      String?
+  importMap     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
@@ -138,8 +140,8 @@ model PublishConfig {
   moduleName String   @db.VarChar(64)
   main       String?
   bin        String[]
-  lockfile   String? // absent from Version
-  importMap  String? // absent from Version
+  lockfile   String?
+  importMap  String?
   updatedAt  DateTime @default(now()) @updatedAt
 
   // Relationships
@@ -212,7 +214,6 @@ model UsageQuotaApi {
   id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   username  String   @db.VarChar(64)
   limit     Int      @default(60)
-  used      Int      @default(0)
   remaining Int      @default(60)
   reset     DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
 
@@ -228,7 +229,6 @@ model UsageQuotaPublish {
   id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   username  String   @db.VarChar(64)
   limit     Int      @default(20)
-  used      Int      @default(0)
   remaining Int      @default(20)
   size      Int      @default(200000000)
   private   Boolean  @default(false)
@@ -351,8 +351,8 @@ model AccessToken {
   // Properties
   id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   username    String   @db.VarChar(64)
-  sha256      String   @db.Char(64)
-  permissions String   @db.Bit(16) @default("0000000000000000")
+  sha256      String   @db.Char(44)
+  permissions String   @default("00000000000000000000000000000000") @db.Bit(32)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 

@@ -1,7 +1,7 @@
 import { users, modules } from "./data";
 import { PrismaClient } from "@prisma/client";
 import mimeType from "mime/lite";
-import * as crypto from "crypto";
+import { hashToken } from "../src/utils/token";
 
 const prisma = new PrismaClient();
 mimeType.define({ "application/typescript": ["ts", "tsx"] }, true);
@@ -60,10 +60,9 @@ export async function seed() {
       data: users
         .map((user) => {
           return user.authTokens.map((token) => {
-            const hash = crypto.createHash("sha256");
             return {
               username: user.username,
-              sha256: hash.update(token).digest("hex"),
+              sha256: hashToken(token),
             };
           });
         })

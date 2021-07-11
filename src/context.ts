@@ -1,135 +1,108 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import {
   ApolloError,
   AuthenticationError,
   ExpressContext,
   SyntaxError,
 } from "apollo-server-express";
-// import { hashToken } from "./utils/token";
-// import { HOURLY_REQUEST_LIMIT } from "./utils/env";
-// import { rejectLogin, UserPermissions } from "./utils/permission";
+import { hashToken } from "./utils/token";
+import { HOURLY_REQUEST_LIMIT } from "./utils/env";
+import { Permissions } from "./utils/permission";
 
 export interface Context {
   prisma: PrismaClient;
-  /* permissions: UserPermissions;
-  user: string;
-  token: {
-    hash: string;
-  }; */
+  username: string;
+  permissions: Permissions;
 }
 
 const prisma = new PrismaClient();
 
+const admins: string[] = ["nestland"];
+
 /** Auth check on every request */
 export async function context({ req }: ExpressContext): Promise<Context> {
-  return { prisma };
-  /* const token = req.headers && req.headers.token;
-  const username = req.headers && req.headers.username;
-  const password = req.headers && req.headers.password;
+  // TODO: extract token from authorization header
+  const token = req.headers && req.headers.token;
 
-  // **** AccessToken & Session ****
   if (token) {
     if (Array.isArray(token)) {
-      throw new SyntaxError("Received an array of tokens. Please provide a string.");
+      throw new SyntaxError(
+        "Received an array of tokens. Please provide a string.",
+      );
     }
 
-    const tokenHash = hashToken(token);
     const accessToken = await prisma.accessToken.findUnique({
-      where: { tokenHash },
-    });
-    const sessionToken = await prisma.session.findUnique({
-      where: { tokenHash },
+      where: { sha256: hashToken(token) },
     });
 
-    if (accessToken === null && sessionToken === null) {
+    if (accessToken === null) {
       throw new AuthenticationError("The given token is invalid.");
     }
 
-    const user = accessToken?.ownerName ?? sessionToken?.userName!;
+    const { username } = accessToken;
 
-    // no request limit for rest api
-    if (user !== "nestdotland") {
-      rateLimiter(user);
+    if (!admins.includes(username)) {
+      rateLimiter(username);
     }
 
     return {
       prisma,
-      permissions: new UserPermissions({
-        accessToken,
-        isSession: sessionToken !== null,
-      }),
-      user,
-      token: {
-        hash: tokenHash,
-      },
+      username,
+      permissions: new Permissions(accessToken.permissions),
     };
   }
 
-  // **** Login ****
-  if (username && password) {
-    if (Array.isArray(username)) {
-      throw new SyntaxError("Received an array of usernames. Please provide a string.");
-    }
-    if (Array.isArray(password)) {
-      throw new SyntaxError("Received an array of passwords. Please provide a string.");
-    }
+  throw new AuthenticationError(
+    "GraphQL API is authenticated only. Please provide an access token.",
+  );
+}
 
-    const user = await prisma.user.findUnique({
-      where: { name: username },
-    });
+async function rateLimiter(username: string) {
+  const quota = await prisma.usageQuota.findUnique({
+    where: { username },
+  });
 
-    if (user === null) {
-      throw new AuthenticationError("The given username doesn't exist.");
-    }
-    if (user.passwordHash !== hashToken(password)) {
-      throw new AuthenticationError("Wrong password.");
-    }
-    rateLimiter(username);
-
-    return {
-      prisma,
-      permissions: new UserPermissions({
-        isLogin: true,
-      }),
-      user: username,
-      token: {
-        get hash() {
-          rejectLogin();
-          return "error";
+  if (quota === null) {
+    await prisma.usageQuota.create({
+      data: {
+        username,
+        api: {
+          connectOrCreate: {
+            where: { username },
+            create: {},
+          },
         },
       },
-    };
-  } */
-
-  // throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
-}
-
-/* async function rateLimiter(name: string) {
-  const user = await prisma.user.findUnique({
-    where: {
-      name,
-    },
-  });
-  if (user === null) {
-    throw new Error("User doesn't exist. Please report this bug.");
+    });
   }
-  const now = new Date().getTime();
-  const oneHourAgo = now - 3_600_000;
-  const newLogs = user.logs.filter((time) => time > oneHourAgo);
-  if (newLogs.length > HOURLY_REQUEST_LIMIT) {
+
+  const apiQuota = await prisma.usageQuotaApi.findUnique({
+    where: { username },
+  });
+
+  const data: Prisma.UsageQuotaApiUpdateInput = {
+    remaining: apiQuota.remaining - 1,
+  };
+
+  // Reset quota
+  if (apiQuota.reset.getTime() - Date.now() < 0) {
+    data.reset = new Date(Date.now() + 3_600_000);
+    data.remaining = apiQuota.limit;
+  }
+
+  await prisma.usageQuotaApi.update({
+    where: { username },
+    data,
+  });
+
+  if (apiQuota.remaining <= -100) {
+    // DDOS ?
+  }
+
+  if (apiQuota.remaining <= 0) {
     throw new ApolloError(
       `Too many requests, please try again later. (${HOURLY_REQUEST_LIMIT} req/h)`,
-      "TOO_MANY_REQUESTS"
+      "TOO_MANY_REQUESTS",
     );
   }
-  newLogs.push(now);
-  await prisma.user.update({
-    where: {
-      name,
-    },
-    data: {
-      logs: newLogs,
-    },
-  });
 }
- */

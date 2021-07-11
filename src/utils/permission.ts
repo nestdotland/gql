@@ -1,120 +1,37 @@
-// import type { AccessToken, ModuleContributor, Permission } from "@prisma/client";
-// import type { Context } from "../context";
+import type { AccessToken } from "@prisma/client";
 
-// interface Access {
-//   canRead: boolean;
-//   canWrite: boolean;
-// }
+const keys = {
+  userRead: 0,
+  userWrite: 0,
+  moduleRead: 0,
+  moduleWrite: 0,
+  modulePublish: 0,
+  privateModuleRead: 0,
+  privateModuleWrite: 0,
+  privateModulePublish: 0,
+};
 
-// function readAccess(permission?: Permission | null): boolean {
-//   return permission === "READ" || permission === "READ_WRITE";
-// }
+export class Permissions {
+  private bits: number
+  private length: number;
 
-// function writeAccess(permission?: Permission | null): boolean {
-//   return permission === "WRITE" || permission === "READ_WRITE";
-// }
+  constructor(bits: string) {
+    this.bits = parseInt(bits, 2);
+    this.length = bits.length;
+  }
 
-// export function rejectLogin(): never {
-//   throw new Error("You must get a session token to perform this action.");
-// }
+  get(key: keyof typeof keys): boolean {
+    const offset = keys[key];
+    const bit = this.bits & (2 << offset);
+    return !!bit;
+  }
 
-// type UserPermsKey =
-//   | "accessProfile"
-//   | "accessTokens"
-//   | "accessVersions"
-//   | "accessConfigs"
-//   | "accessPrivateVersions"
-//   | "accessPrivateConfigs"
-//   | "accessPrivateContributions";
+  set(key: keyof typeof keys, value: boolean) {
+    const offset = keys[key];
+    this.bits &= ~ ((2 << offset) * (+value));
+  }
 
-// interface UserPermissionsInput {
-//   accessToken?: AccessToken | null;
-//   isSession?: boolean;
-//   isLogin?: boolean;
-// }
-
-// export class UserPermissions {
-//   accessToken?: AccessToken | null;
-//   isSession?: boolean;
-//   isLogin?: boolean;
-//   constructor(options: UserPermissionsInput) {
-//     this.accessToken = options.accessToken;
-//     this.isSession = options.isSession;
-//     this.isLogin = options.isLogin;
-//   }
-
-//   private access(key: UserPermsKey): Access {
-//     if (this.isSession) {
-//       return {
-//         canRead: true,
-//         canWrite: true,
-//       };
-//     }
-//     if (this.isLogin) rejectLogin();
-//     return {
-//       canRead: readAccess(this.accessToken && this.accessToken[key]),
-//       canWrite: writeAccess(this.accessToken && this.accessToken[key]),
-//     };
-//   }
-
-//   hasRead = { in: ["READ", "READ_WRITE"] as ["READ", "READ_WRITE"] };
-
-//   get profile() {
-//     return this.access("accessProfile");
-//   }
-//   get tokens() {
-//     return this.access("accessTokens");
-//   }
-//   get versions() {
-//     return this.access("accessVersions");
-//   }
-//   get configs() {
-//     return this.access("accessConfigs");
-//   }
-//   get privateConfigs() {
-//     return this.access("accessPrivateConfigs");
-//   }
-//   get privateContributions() {
-//     return this.access("accessPrivateContributions");
-//   }
-// }
-
-// interface ModulePermissionsInput {
-//   authorName: string;
-//   moduleName: string;
-// }
-
-// type ModulePermsKey = "accessVersions" | "accessConfig" | "accessContributors";
-
-// export class ModulePermissions {
-//   contributor: Promise<ModuleContributor | null>;
-
-//   constructor(ctx: Context, authorName_moduleName: ModulePermissionsInput) {
-//     this.contributor = ctx.prisma.moduleContributor.findUnique({
-//       where: {
-//         authorName_moduleName_contributorName: {
-//           ...authorName_moduleName,
-//           contributorName: ctx.user,
-//         },
-//       },
-//     });
-//   }
-
-//   private async access(key: ModulePermsKey): Promise<Access> {
-//     const contributor = await this.contributor;
-//     return {
-//       canRead: readAccess(contributor && contributor[key]),
-//       canWrite: writeAccess(contributor && contributor[key]),
-//     };
-//   }
-
-//   get versions() {
-//     return this.access("accessVersions");
-//   }
-//   get config() {
-//     return this.access("accessConfig");
-//   }
-//   get contributors() {
-//     return this.access("accessContributors");
-//   }
-// }
+  toString(): string {
+    return this.bits.toString(2).padStart(this.length, "0");
+  }
+}

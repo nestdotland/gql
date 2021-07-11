@@ -181,7 +181,11 @@ export const UsageQuotaApi = objectType({
     t.model.id();
     t.model.username();
     t.model.limit();
-    t.model.used();
+    t.int("used", {
+      resolve(user) {
+        return Math.max(0, user.limit - user.remaining)
+      }
+    })
     t.model.remaining();
     t.model.reset();
 
@@ -195,7 +199,11 @@ export const UsageQuotaPublish = objectType({
     t.model.id();
     t.model.username();
     t.model.limit();
-    t.model.used();
+    t.int("used", {
+      resolve(user) {
+        return Math.max(0, user.limit - user.remaining)
+      }
+    })
     t.model.remaining();
     t.model.size();
     t.model.private();
