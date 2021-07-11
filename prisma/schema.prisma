@@ -190,7 +190,7 @@ model DevConfigHook {
 
   // Primary Key
   @@id([authorName, moduleName, key])
-  @@map("Hooks")
+  @@map("Hook")
 }
 
 model UsageQuota {
@@ -361,5 +361,4 @@ model AccessToken {
 
   // Primary Key
   @@id([sha256])
-  @@map("AccessTokens")
 }
