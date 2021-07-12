@@ -167,6 +167,7 @@ model DevConfig {
   @@id([authorName, moduleName])
 }
 
+// TODO: find better name
 enum HookMode {
   pre
   post
@@ -211,11 +212,11 @@ model UsageQuota {
 
 model UsageQuotaApi {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username  String   @db.VarChar(64)
-  limit     Int      @default(60)
-  remaining Int      @default(60)
-  reset     DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  id       String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username String   @db.VarChar(64)
+  limit    Int      @default(60)
+  used     Int      @default(0)
+  reset    DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
 
   // Relationships
   quota UsageQuota @relation("rUsageQuotaToUsageQuotaApi", fields: [username], references: [username])
@@ -226,13 +227,13 @@ model UsageQuotaApi {
 
 model UsageQuotaPublish {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username  String   @db.VarChar(64)
-  limit     Int      @default(20)
-  remaining Int      @default(20)
-  size      Int      @default(200000000)
-  private   Boolean  @default(false)
-  reset     DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  id       String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  username String   @db.VarChar(64)
+  limit    Int      @default(20)
+  used     Int      @default(0)
+  size     Int      @default(200000000)
+  private  Boolean  @default(false)
+  reset    DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
 
   // Relationships
   quota UsageQuota @relation("rUsageQuotaToUsageQuotaPublish", fields: [username], references: [username])

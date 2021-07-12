@@ -6,7 +6,6 @@ import {
   SyntaxError,
 } from "apollo-server-express";
 import { hashToken } from "./utils/token";
-import { HOURLY_REQUEST_LIMIT } from "./utils/env";
 import { Permissions } from "./utils/permission";
 
 export interface Context {
@@ -81,13 +80,13 @@ async function rateLimiter(username: string) {
   });
 
   const data: Prisma.UsageQuotaApiUpdateInput = {
-    remaining: apiQuota.remaining - 1,
+    used: apiQuota.used + 1,
   };
 
   // Reset quota
   if (apiQuota.reset.getTime() - Date.now() < 0) {
     data.reset = new Date(Date.now() + 3_600_000);
-    data.remaining = apiQuota.limit;
+    data.used = 0;
   }
 
   await prisma.usageQuotaApi.update({
@@ -95,13 +94,13 @@ async function rateLimiter(username: string) {
     data,
   });
 
-  if (apiQuota.remaining <= -100) {
+  if (apiQuota.used >= 10 * apiQuota.limit) {
     // DDOS ?
   }
 
-  if (apiQuota.remaining <= 0) {
+  if (apiQuota.used >= apiQuota.limit) {
     throw new ApolloError(
-      `Too many requests, please try again later. (${HOURLY_REQUEST_LIMIT} req/h)`,
+      `Too many requests, please try again later. (${apiQuota.limit} req/h)`,
       "TOO_MANY_REQUESTS",
     );
   }

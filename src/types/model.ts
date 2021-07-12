@@ -9,7 +9,6 @@ function equalsFalse(bool: boolean) {
 export const User = objectType({
   name: "User",
   definition(t) {
-    t.model.id();
     t.model.username();
     t.model.name();
     t.model.avatar();
@@ -30,8 +29,6 @@ export const User = objectType({
 export const Module = objectType({
   name: "Module",
   definition(t) {
-    t.model.id();
-    t.model.authorName(); 
     t.model.name();
     t.model.fullName();
     t.model.description();
@@ -61,17 +58,15 @@ export const Module = objectType({
 export const Version = objectType({
   name: "Version",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
     t.model.name();
-    t.model.publisherName();
     t.model.deprecated();
     t.model.vulnerable();
     t.model.unlisted();
     t.model.supportedDeno();
     t.model.main();
     t.model.bin();
+    t.model.lockfile();
+    t.model.importMap();
     t.model.createdAt();
     t.model.updatedAt();
 
@@ -89,11 +84,7 @@ export const Version = objectType({
 export const Tag = objectType({
   name: "Tag",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
     t.model.name();
-    t.model.versionName();
     t.model.createdAt();
     t.model.updatedAt();
 
@@ -106,10 +97,6 @@ export const Tag = objectType({
 export const File = objectType({
   name: "File",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
-    t.model.versionName();
     t.model.path();
     t.model.url();
     t.model.mimeType();
@@ -122,9 +109,6 @@ export const File = objectType({
 export const PublishConfig = objectType({
   name: "PublishConfig",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
     t.model.main();
     t.model.bin();
     t.model.lockfile();
@@ -138,9 +122,6 @@ export const PublishConfig = objectType({
 export const DevConfig = objectType({
   name: "DevConfig",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
     t.model.ignore();
     t.model.updatedAt();
 
@@ -152,10 +133,8 @@ export const DevConfig = objectType({
 export const DevConfigHook = objectType({
   name: "DevConfigHook",
   definition(t) {
-    t.model.id();
-    t.model.authorName();
-    t.model.moduleName();
     t.model.key();
+    t.model.mode();
     t.model.value();
     t.model.updatedAt();
 
@@ -166,9 +145,6 @@ export const DevConfigHook = objectType({
 export const UsageQuota = objectType({
   name: "UsageQuota",
   definition(t) {
-    t.model.id();
-    t.model.username();
-
     t.model.user();
     t.model.api();
     t.model.publish();
@@ -178,15 +154,13 @@ export const UsageQuota = objectType({
 export const UsageQuotaApi = objectType({
   name: "UsageQuotaApi",
   definition(t) {
-    t.model.id();
-    t.model.username();
     t.model.limit();
-    t.int("used", {
+    t.int("remaining", {
       resolve(user) {
-        return Math.max(0, user.limit - user.remaining)
+        return Math.max(0, user.limit - user.used)
       }
     })
-    t.model.remaining();
+    t.model.used();
     t.model.reset();
 
     t.model.quota();
@@ -196,15 +170,13 @@ export const UsageQuotaApi = objectType({
 export const UsageQuotaPublish = objectType({
   name: "UsageQuotaPublish",
   definition(t) {
-    t.model.id();
-    t.model.username();
     t.model.limit();
-    t.int("used", {
+    t.int("remaining", {
       resolve(user) {
-        return Math.max(0, user.limit - user.remaining)
+        return Math.max(0, user.limit - user.used)
       }
     })
-    t.model.remaining();
+    t.model.used();
     t.model.size();
     t.model.private();
     t.model.reset();
@@ -216,14 +188,6 @@ export const UsageQuotaPublish = objectType({
 export const DependencyGraph = objectType({
   name: "DependencyGraph",
   definition(t) {
-    t.model.id();
-    t.model.dependentAuthor();
-    t.model.dependentName();
-    t.model.dependentVersion();
-    t.model.dependencyAuthor();
-    t.model.dependencyName();
-    t.model.dependencyVersion();
-
     t.model.dependent();
     t.model.dependency();
   },
@@ -232,14 +196,6 @@ export const DependencyGraph = objectType({
 export const TaggedDependencyGraph = objectType({
   name: "TaggedDependencyGraph",
   definition(t) {
-    t.model.id();
-    t.model.dependentAuthor();
-    t.model.dependentName();
-    t.model.dependentVersion();
-    t.model.dependencyAuthor();
-    t.model.dependencyName();
-    t.model.dependencyTag();
-
     t.model.dependent();
     t.model.dependency();
   },
@@ -248,8 +204,6 @@ export const TaggedDependencyGraph = objectType({
 export const ThirdPartyModule = objectType({
   name: "ThirdPartyModule",
   definition(t) {
-    t.model.id();
-    t.model.hostname();
     t.model.path();
 
     t.model.host();
@@ -260,7 +214,6 @@ export const ThirdPartyModule = objectType({
 export const ThirdPartyHost = objectType({
   name: "ThirdPartyHost",
   definition(t) {
-    t.model.id();
     t.model.hostname();
     t.model.verified();
 
@@ -271,13 +224,6 @@ export const ThirdPartyHost = objectType({
 export const ThirdPartyDependencyGraph = objectType({
   name: "ThirdPartyDependencyGraph",
   definition(t) {
-    t.model.id();
-    t.model.dependentAuthor();
-    t.model.dependentName();
-    t.model.dependentVersion();
-    t.model.dependencyHost();
-    t.model.dependencyPath();
-
     t.model.dependent();
     t.model.dependency();
   },
@@ -286,11 +232,6 @@ export const ThirdPartyDependencyGraph = objectType({
 export const Contribution = objectType({
   name: "Contribution",
   definition(t) {
-    t.model.id();
-    t.model.contributorName();
-    t.model.moduleAuthor();
-    t.model.moduleName();
-
     t.model.contributor();
     t.model.module();
   },
@@ -299,9 +240,6 @@ export const Contribution = objectType({
 export const AccessToken = objectType({
   name: "AccessToken",
   definition(t) {
-    t.model.id();
-    t.model.username();
-    t.model.sha256();
     t.model.permissions();
     t.model.createdAt();
     t.model.updatedAt();
