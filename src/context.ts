@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { AccessToken, Prisma, PrismaClient } from "@prisma/client";
 import {
   ApolloError,
   AuthenticationError,
@@ -12,6 +12,7 @@ export interface Context {
   prisma: PrismaClient;
   username: string;
   permissions: Permissions;
+  accessToken: AccessToken;
 }
 
 const prisma = new PrismaClient();
@@ -48,6 +49,7 @@ export async function context({ req }: ExpressContext): Promise<Context> {
       prisma,
       username,
       permissions: new Permissions(accessToken.permissions),
+      accessToken,
     };
   }
 

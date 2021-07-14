@@ -12,7 +12,7 @@ export async function seed() {
       skipDuplicates: true,
       data: users.map((user) => {
         const { username, name, bio, avatar } = user;
-        return { username, name, bio, avatar };
+        return { name: username, fullName: name, bio, avatar };
       }),
     })
     .then(console.log)

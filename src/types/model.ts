@@ -1,32 +1,79 @@
-import { enumType, objectType } from "nexus";
-// import { readAccess } from "../utils/access";
+import { objectType } from "nexus";
 import { modelOptions } from "../utils/model";
+import { Keys as PermissionKeys, Permissions } from "../utils/permission";
 
-function equalsFalse(bool: boolean) {
+function setEqualsFalse(bool: boolean) {
   return bool ? {} : { equals: false };
 }
 
-export const User = objectType({
+// TODO: remove join tables
+
+export const UserType = objectType({
   name: "User",
   definition(t) {
-    t.model.username();
     t.model.name();
+    t.model.fullName();
     t.model.avatar();
     t.model.bio();
     t.model.funding();
     t.model.verified();
     t.model.createdAt();
     t.model.updatedAt();
+    t.nonNull.boolean("isViewer", {
+      resolve(user, _args, ctx) {
+        return user.name === ctx.username;
+      },
+    });
 
-    t.model.modules(modelOptions);
+    /** Hide private modules if not authorized */
+    t.model.modules({
+      ...modelOptions,
+      resolve(user, args, ctx, info, originalResolve) {
+        args.where ??= {};
+        args.where.private = setEqualsFalse(
+          ctx.username === user.name &&
+            ctx.permissions.get("privateModuleRead"),
+        );
+        return originalResolve(user, args, ctx, info);
+      },
+    });
     t.model.publications(modelOptions);
-    t.model.contributions(modelOptions);
-    t.model.usageQuota();
-    t.model.accessTokens(modelOptions);
+    /** Hide private contributions if not authorized */
+    t.model.contributions({
+      ...modelOptions,
+      resolve(user, args, ctx, info, originalResolve) {
+        args.where ??= {};
+        args.where.module ??= {};
+        args.where.module.private = setEqualsFalse(
+          ctx.username === user.name &&
+            ctx.permissions.get("privateModuleRead"),
+        );
+        return originalResolve(user, args, ctx, info);
+      },
+    });
+    /** Hide usage quotas of other users */
+    t.model.usageQuota({
+      resolve(user, args, ctx, info, originalResolve) {
+        return user.name === ctx.username
+          ? originalResolve(user, args, ctx, info)
+          : null;
+      },
+    });
+    /** Hide access tokens of other users */
+    t.model.accessTokens({
+      ...modelOptions,
+      resolve(user, args, ctx, info, originalResolve) {
+        args.where ??= {};
+        args.where.username = {
+          equals: ctx.username,
+        };
+        return originalResolve(user, args, ctx, info);
+      },
+    });
   },
 });
 
-export const Module = objectType({
+export const ModuleType = objectType({
   name: "Module",
   definition(t) {
     t.model.name();
@@ -55,7 +102,7 @@ export const Module = objectType({
   },
 });
 
-export const Version = objectType({
+export const VersionType = objectType({
   name: "Version",
   definition(t) {
     t.model.name();
@@ -81,7 +128,7 @@ export const Version = objectType({
   },
 });
 
-export const Tag = objectType({
+export const TagType = objectType({
   name: "Tag",
   definition(t) {
     t.model.name();
@@ -94,7 +141,7 @@ export const Tag = objectType({
   },
 });
 
-export const File = objectType({
+export const FileType = objectType({
   name: "File",
   definition(t) {
     t.model.path();
@@ -106,7 +153,7 @@ export const File = objectType({
   },
 });
 
-export const PublishConfig = objectType({
+export const PublishConfigType = objectType({
   name: "PublishConfig",
   definition(t) {
     t.model.main();
@@ -119,7 +166,7 @@ export const PublishConfig = objectType({
   },
 });
 
-export const DevConfig = objectType({
+export const DevConfigType = objectType({
   name: "DevConfig",
   definition(t) {
     t.model.ignore();
@@ -130,7 +177,7 @@ export const DevConfig = objectType({
   },
 });
 
-export const DevConfigHook = objectType({
+export const DevConfigHookType = objectType({
   name: "DevConfigHook",
   definition(t) {
     t.model.key();
@@ -142,7 +189,7 @@ export const DevConfigHook = objectType({
   },
 });
 
-export const UsageQuota = objectType({
+export const UsageQuotaType = objectType({
   name: "UsageQuota",
   definition(t) {
     t.model.user();
@@ -151,15 +198,15 @@ export const UsageQuota = objectType({
   },
 });
 
-export const UsageQuotaApi = objectType({
+export const UsageQuotaApiType = objectType({
   name: "UsageQuotaApi",
   definition(t) {
     t.model.limit();
-    t.int("remaining", {
+    t.nonNull.int("remaining", {
       resolve(user) {
-        return Math.max(0, user.limit - user.used)
-      }
-    })
+        return Math.max(0, user.limit - user.used);
+      },
+    });
     t.model.used();
     t.model.reset();
 
@@ -167,15 +214,15 @@ export const UsageQuotaApi = objectType({
   },
 });
 
-export const UsageQuotaPublish = objectType({
+export const UsageQuotaPublishType = objectType({
   name: "UsageQuotaPublish",
   definition(t) {
     t.model.limit();
-    t.int("remaining", {
+    t.nonNull.int("remaining", {
       resolve(user) {
-        return Math.max(0, user.limit - user.used)
-      }
-    })
+        return Math.max(0, user.limit - user.used);
+      },
+    });
     t.model.used();
     t.model.size();
     t.model.private();
@@ -185,7 +232,7 @@ export const UsageQuotaPublish = objectType({
   },
 });
 
-export const DependencyGraph = objectType({
+export const DependencyGraphType = objectType({
   name: "DependencyGraph",
   definition(t) {
     t.model.dependent();
@@ -193,7 +240,7 @@ export const DependencyGraph = objectType({
   },
 });
 
-export const TaggedDependencyGraph = objectType({
+export const TaggedDependencyGraphType = objectType({
   name: "TaggedDependencyGraph",
   definition(t) {
     t.model.dependent();
@@ -201,7 +248,7 @@ export const TaggedDependencyGraph = objectType({
   },
 });
 
-export const ThirdPartyModule = objectType({
+export const ThirdPartyModuleType = objectType({
   name: "ThirdPartyModule",
   definition(t) {
     t.model.path();
@@ -211,7 +258,7 @@ export const ThirdPartyModule = objectType({
   },
 });
 
-export const ThirdPartyHost = objectType({
+export const ThirdPartyHostType = objectType({
   name: "ThirdPartyHost",
   definition(t) {
     t.model.hostname();
@@ -221,7 +268,7 @@ export const ThirdPartyHost = objectType({
   },
 });
 
-export const ThirdPartyDependencyGraph = objectType({
+export const ThirdPartyDependencyGraphType = objectType({
   name: "ThirdPartyDependencyGraph",
   definition(t) {
     t.model.dependent();
@@ -229,7 +276,7 @@ export const ThirdPartyDependencyGraph = objectType({
   },
 });
 
-export const Contribution = objectType({
+export const ContributionType = objectType({
   name: "Contribution",
   definition(t) {
     t.model.contributor();
@@ -237,13 +284,52 @@ export const Contribution = objectType({
   },
 });
 
-export const AccessToken = objectType({
+export const AccessTokenType = objectType({
   name: "AccessToken",
+  sourceType: {
+    module: "@prisma/client",
+    export: "AccessToken",
+  },
   definition(t) {
-    t.model.permissions();
+    t.model.sha256();
+    t.field("permissions", {
+      type: "Permissions",
+      resolve(token) {
+        return new Permissions(token.permissions);
+      },
+    });
+    t.nonNull.int("permissionsInteger", {
+      resolve(token) {
+        return parseInt(token.permissions, 2);
+      },
+    });
     t.model.createdAt();
     t.model.updatedAt();
+    t.nonNull.boolean("isUsed", {
+      resolve(token, _args, ctx) {
+        return token.sha256 === ctx.accessToken.sha256;
+      },
+    });
 
     t.model.user();
+  },
+});
+
+export const PermissionsType = objectType({
+  name: "Permissions",
+  sourceType: {
+    module: `${__dirname}/../utils/permission.ts`,
+    export: "Permissions",
+  },
+  definition(t) {
+    for (const key in PermissionKeys) {
+      if (isNaN(parseInt(key))) {
+        t.nonNull.boolean(key, {
+          resolve(permissions) {
+            return permissions.get(key as keyof typeof PermissionKeys);
+          },
+        });
+      }
+    }
   },
 });

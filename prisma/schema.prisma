@@ -10,8 +10,8 @@ datasource db {
 model User {
   // Properties
   id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid // TODO(@maximousblk): remove @default() in prod
-  username  String   @db.VarChar(64)
-  name      String?  @db.VarChar(64)
+  name      String   @db.VarChar(64)
+  fullName  String?  @db.VarChar(64)
   avatar    String?
   bio       String?
   funding   String?
@@ -27,13 +27,12 @@ model User {
   accessTokens  AccessToken[]  @relation("rAccessTokensToUser")
 
   // Primary Key
-  @@id([username])
+  @@id([name])
 }
 
 model Module {
   // Properties
   id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName  String   @db.VarChar(64)
   name        String   @db.VarChar(64) // inconsistent with User
   fullName    String?  @db.VarChar(64)
   description String?
@@ -51,10 +50,13 @@ model Module {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
+  // Foreign keys
+  authorName String @db.VarChar(64)
+
   // Relationships
   versions      Version[]      @relation("rVersionToModule")
   contributors  Contribution[] @relation("rContributionToModule")
-  author        User           @relation("rModuleToAuthor", fields: [authorName], references: [username])
+  author        User           @relation("rModuleToAuthor", fields: [authorName], references: [name])
   tags          Tag[]          @relation("rTagToModule")
   publishConfig PublishConfig? @relation("rPublishConfigToModule")
   devConfig     DevConfig?     @relation("rDevConfigToModule")
@@ -66,8 +68,6 @@ model Module {
 model Version {
   // Properties
   id            String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName    String   @db.VarChar(64)
-  moduleName    String   @db.VarChar(64)
   name          String   @db.VarChar(64)
   publisherName String   @db.VarChar(64)
   deprecated    Boolean  @default(false)
@@ -81,11 +81,15 @@ model Version {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
+  // Foreign keys
+  authorName String @db.VarChar(64)
+  moduleName String @db.VarChar(64)
+
   // Relationships
   files                  File[]                      @relation("rFileToVersion")
   tag                    Tag[]                       @relation("rTagToVersion")
   module                 Module                      @relation("rVersionToModule", fields: [authorName, moduleName], references: [authorName, name])
-  publisher              User                        @relation("rVersionToUser", fields: [publisherName], references: [username])
+  publisher              User                        @relation("rVersionToUser", fields: [publisherName], references: [name])
   dependents             DependencyGraph[]           @relation("rDependentToDependency")
   dependencies           DependencyGraph[]           @relation("rDependencyToDependent")
   taggedDependencies     TaggedDependencyGraph[]     @relation("rTaggedDependencyToDependent")
@@ -97,14 +101,15 @@ model Version {
 
 model Tag {
   // Properties
-  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName  String   @db.VarChar(64)
-  moduleName  String   @db.VarChar(64)
-  name        String   @db.VarChar(64)
-  versionName String   @db.VarChar(64)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  name      String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
+  // Foreign keys
+  authorName  String @db.VarChar(64)
+  moduleName  String @db.VarChar(64)
+  versionName String @db.VarChar(64)
 
   // Relationships
   module     Module                  @relation("rTagToModule", fields: [authorName, moduleName], references: [authorName, name])
@@ -117,14 +122,16 @@ model Tag {
 
 model File {
   // Properties
-  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName  String   @db.VarChar(64)
-  moduleName  String   @db.VarChar(64)
-  versionName String   @db.VarChar(64)
-  path        String
-  url         String
-  mimeType    String?  @db.VarChar(64)
-  createdAt   DateTime @default(now())
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  path      String
+  url       String
+  mimeType  String?  @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  // Foreign keys
+  authorName  String @db.VarChar(64)
+  moduleName  String @db.VarChar(64)
+  versionName String @db.VarChar(64)
 
   // Relationships
   version Version @relation("rFileToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
@@ -135,14 +142,16 @@ model File {
 
 model PublishConfig {
   // Properties
-  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName String   @db.VarChar(64)
-  moduleName String   @db.VarChar(64)
-  main       String?
-  bin        String[]
-  lockfile   String?
-  importMap  String?
-  updatedAt  DateTime @default(now()) @updatedAt
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  main      String?
+  bin       String[]
+  lockfile  String?
+  importMap String?
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Foreign keys
+  authorName String @db.VarChar(64)
+  moduleName String @db.VarChar(64)
 
   // Relationships
   module Module @relation("rPublishConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
@@ -153,11 +162,13 @@ model PublishConfig {
 
 model DevConfig {
   // Properties
-  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName String   @db.VarChar(64)
-  moduleName String   @db.VarChar(64)
-  ignore     String[]
-  updatedAt  DateTime @default(now()) @updatedAt
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  ignore    String[]
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Foreign keys
+  authorName String @db.VarChar(64)
+  moduleName String @db.VarChar(64)
 
   // Relationships
   module Module          @relation("rDevConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
@@ -180,13 +191,15 @@ enum HookKey {
 
 model DevConfigHook {
   // Properties
-  id         String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  authorName String   @db.VarChar(64)
-  moduleName String   @db.VarChar(64)
-  key        HookKey
-  mode       HookMode
-  value      String
-  updatedAt  DateTime @default(now()) @updatedAt
+  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  key       HookKey
+  mode      HookMode
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Foreign keys
+  authorName String @db.VarChar(64)
+  moduleName String @db.VarChar(64)
 
   // Relationships
   config DevConfig @relation("rDevConfigToHooks", fields: [authorName, moduleName], references: [authorName, moduleName])
@@ -198,11 +211,13 @@ model DevConfigHook {
 
 model UsageQuota {
   // Properties
-  id       String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+
+  // Foreign keys
   username String @db.VarChar(64)
 
   // Relationships
-  user    User               @relation("rUsageQuotaToUser", fields: [username], references: [username])
+  user    User               @relation("rUsageQuotaToUser", fields: [username], references: [name])
   api     UsageQuotaApi?     @relation("rUsageQuotaToUsageQuotaApi")
   publish UsageQuotaPublish? @relation("rUsageQuotaToUsageQuotaPublish")
 
@@ -212,11 +227,13 @@ model UsageQuota {
 
 model UsageQuotaApi {
   // Properties
-  id       String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username String   @db.VarChar(64)
-  limit    Int      @default(60)
-  used     Int      @default(0)
-  reset    DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  id    String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  limit Int      @default(60)
+  used  Int      @default(0)
+  reset DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+
+  // Foreign keys
+  username String @db.VarChar(64)
 
   // Relationships
   quota UsageQuota @relation("rUsageQuotaToUsageQuotaApi", fields: [username], references: [username])
@@ -227,13 +244,15 @@ model UsageQuotaApi {
 
 model UsageQuotaPublish {
   // Properties
-  id       String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username String   @db.VarChar(64)
-  limit    Int      @default(20)
-  used     Int      @default(0)
-  size     Int      @default(200000000)
-  private  Boolean  @default(false)
-  reset    DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  id      String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  limit   Int      @default(20)
+  used    Int      @default(0)
+  size    Int      @default(200000000)
+  private Boolean  @default(false)
+  reset   DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+
+  // Foreign keys
+  username String @db.VarChar(64)
 
   // Relationships
   quota UsageQuota @relation("rUsageQuotaToUsageQuotaPublish", fields: [username], references: [username])
@@ -244,7 +263,9 @@ model UsageQuotaPublish {
 
 model DependencyGraph {
   // Properties
-  id                String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+
+  // Foreign keys
   dependentAuthor   String @db.VarChar(64)
   dependentName     String @db.VarChar(64)
   dependentVersion  String @db.VarChar(64)
@@ -262,7 +283,9 @@ model DependencyGraph {
 
 model TaggedDependencyGraph {
   // Properties
-  id               String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+
+  // Foreign keys
   dependentAuthor  String @db.VarChar(64)
   dependentName    String @db.VarChar(64)
   dependentVersion String @db.VarChar(64)
@@ -280,9 +303,11 @@ model TaggedDependencyGraph {
 
 model ThirdPartyModule {
   // Properties
-  id       String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id   String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  path String
+
+  // Foreign keys
   hostname String
-  path     String
 
   // Relationships
   host       ThirdPartyHost              @relation("rThirdPartyModuleToThirdPartyHost", fields: [hostname], references: [hostname])
@@ -307,7 +332,9 @@ model ThirdPartyHost {
 
 model ThirdPartyDependencyGraph {
   // Properties
-  id               String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+
+  // Foreign keys
   dependentAuthor  String @db.VarChar(64)
   dependentName    String @db.VarChar(64)
   dependentVersion String @db.VarChar(64)
@@ -324,41 +351,34 @@ model ThirdPartyDependencyGraph {
 
 model Contribution {
   // Properties
-  id              String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+
+  // Foreign keys
   contributorName String @db.VarChar(64)
   moduleAuthor    String @db.VarChar(64)
   moduleName      String @db.VarChar(64)
 
   // Relationships
-  contributor User   @relation("rContributionToUser", fields: [contributorName], references: [username])
+  contributor User   @relation("rContributionToUser", fields: [contributorName], references: [name])
   module      Module @relation("rContributionToModule", fields: [moduleAuthor, moduleName], references: [authorName, name])
 
   // Primary Key
   @@id([contributorName, moduleAuthor, moduleName])
 }
 
-// enum Permission {
-//   USER_READ
-//   USER_WRITE
-//   MODULE_READ
-//   MODULE_WRITE
-//   MODULE_PUBLISH
-//   PRIVATE_MODULE_READ
-//   PRIVATE_MODULE_WRITE
-//   PRIVATE_MODULE_PUBLISH
-// }
-
 model AccessToken {
   // Properties
   id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  username    String   @db.VarChar(64)
   sha256      String   @db.Char(44)
   permissions String   @default("00000000000000000000000000000000") @db.Bit(32)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
+  // Foreign keys
+  username String @db.VarChar(64)
+
   // Relationships
-  user User @relation("rAccessTokensToUser", fields: [username], references: [username])
+  user User @relation("rAccessTokensToUser", fields: [username], references: [name])
 
   // Primary Key
   @@id([sha256])

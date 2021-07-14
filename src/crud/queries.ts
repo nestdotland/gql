@@ -1,4 +1,5 @@
 import { nonNull, queryField, queryType } from "nexus";
+import { resolve } from "node:path";
 import { Context } from "../context";
 import { NexusGenInputs } from "../generated/nexus";
 import { modelOptions } from "../utils/model";
@@ -10,7 +11,25 @@ export const Query = queryType({
     t.crud.user();
     t.crud.users(modelOptions);
     t.crud.module();
-    t.crud.modules(modelOptions);
+    t.crud.modules({
+      ...modelOptions,
+      async resolve(parent, args, ctx, info, originalResolve) {
+        args.where = {
+          ...args.where,
+          OR: [
+            /* Public module */
+            {
+              private: { equals: false },
+            },
+            /* Author read access */
+            ctx.permissions.get("privateModuleRead")
+              ? { author: { name: { equals: ctx.username } } }
+              : {},
+          ],
+        };
+        return originalResolve(parent, args, ctx, info);
+      },
+    });
     t.crud.version();
     t.crud.versions(modelOptions);
     t.crud.tag();
@@ -46,14 +65,24 @@ export const Query = queryType({
   },
 });
 
-export const profile = queryField("profile", {
+export const profile = queryField("viewer", {
   type: nonNull("User"),
-  async resolve(_parent, _args, ctx) {
+  resolve(_parent, _args, ctx) {
     return ctx.prisma.user.findUnique({
       where: {
-        username: ctx.username,
+        name: ctx.username,
       },
     });
+  },
+});
+
+export const stats = queryField("stats", {
+  type: nonNull("Stats"),
+  resolve() {
+    return {
+      module: {},
+      user: {},
+    };
   },
 });
 
