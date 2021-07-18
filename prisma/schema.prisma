@@ -2,14 +2,20 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator nexusPrisma {
+  provider = "nexus-prisma"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+/// This is a user!
 model User {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid // TODO(@maximousblk): remove @default() in prod
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()")) // TODO(@maximousblk): remove @default() in prod
+  /// This is a name!
   name      String   @db.VarChar(64)
   fullName  String?  @db.VarChar(64)
   avatar    String?
@@ -32,7 +38,7 @@ model User {
 
 model Module {
   // Properties
-  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id          String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   name        String   @db.VarChar(64) // inconsistent with User
   fullName    String?  @db.VarChar(64)
   description String?
@@ -67,7 +73,7 @@ model Module {
 
 model Version {
   // Properties
-  id            String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id            String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   name          String   @db.VarChar(64)
   publisherName String   @db.VarChar(64)
   deprecated    Boolean  @default(false)
@@ -101,7 +107,7 @@ model Version {
 
 model Tag {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   name      String   @db.VarChar(64)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -122,7 +128,7 @@ model Tag {
 
 model File {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   path      String
   url       String
   mimeType  String?  @db.VarChar(64)
@@ -142,7 +148,7 @@ model File {
 
 model PublishConfig {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   main      String?
   bin       String[]
   lockfile  String?
@@ -162,7 +168,7 @@ model PublishConfig {
 
 model DevConfig {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   ignore    String[]
   updatedAt DateTime @default(now()) @updatedAt
 
@@ -191,7 +197,7 @@ enum HookKey {
 
 model DevConfigHook {
   // Properties
-  id        String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   key       HookKey
   mode      HookMode
   value     String
@@ -211,7 +217,7 @@ model DevConfigHook {
 
 model UsageQuota {
   // Properties
-  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
 
   // Foreign keys
   username String @db.VarChar(64)
@@ -227,7 +233,7 @@ model UsageQuota {
 
 model UsageQuotaApi {
   // Properties
-  id    String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id    String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   limit Int      @default(60)
   used  Int      @default(0)
   reset DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
@@ -244,7 +250,7 @@ model UsageQuotaApi {
 
 model UsageQuotaPublish {
   // Properties
-  id      String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id      String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   limit   Int      @default(20)
   used    Int      @default(0)
   size    Int      @default(200000000)
@@ -263,7 +269,7 @@ model UsageQuotaPublish {
 
 model DependencyGraph {
   // Properties
-  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
 
   // Foreign keys
   dependentAuthor   String @db.VarChar(64)
@@ -283,7 +289,7 @@ model DependencyGraph {
 
 model TaggedDependencyGraph {
   // Properties
-  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
 
   // Foreign keys
   dependentAuthor  String @db.VarChar(64)
@@ -303,7 +309,7 @@ model TaggedDependencyGraph {
 
 model ThirdPartyModule {
   // Properties
-  id   String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id   String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   path String
 
   // Foreign keys
@@ -319,7 +325,7 @@ model ThirdPartyModule {
 
 model ThirdPartyHost {
   // Properties
-  id       String  @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id       String  @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   hostname String
   verified Boolean @default(false)
 
@@ -332,7 +338,7 @@ model ThirdPartyHost {
 
 model ThirdPartyDependencyGraph {
   // Properties
-  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
 
   // Foreign keys
   dependentAuthor  String @db.VarChar(64)
@@ -351,7 +357,7 @@ model ThirdPartyDependencyGraph {
 
 model Contribution {
   // Properties
-  id String @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
 
   // Foreign keys
   contributorName String @db.VarChar(64)
@@ -368,7 +374,7 @@ model Contribution {
 
 model AccessToken {
   // Properties
-  id          String   @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id          String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
   sha256      String   @db.Char(44)
   permissions String   @default("00000000000000000000000000000000") @db.Bit(32)
   createdAt   DateTime @default(now())

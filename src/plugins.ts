@@ -1,9 +1,4 @@
 import { nullabilityGuardPlugin, queryComplexityPlugin } from "nexus";
-import { nexusPrisma } from "nexus-plugin-prisma";
-
-const prisma = nexusPrisma({
-  experimentalCRUD: true,
-});
 
 const nullGuard = nullabilityGuardPlugin({
   onGuarded({ info }) {
@@ -20,4 +15,4 @@ const nullGuard = nullabilityGuardPlugin({
 
 const complexity = queryComplexityPlugin();
 
-export const plugins = [prisma, nullGuard, complexity];
+export const plugins = [nullGuard, complexity];

@@ -3,7 +3,9 @@ import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from "graphq
 import { separateOperations } from "graphql";
 import { schema } from "./schema";
 import { context } from "./context";
-import { MAX_QUERY_COMPLEXITY } from "./utils/env";
+// import { MAX_QUERY_COMPLEXITY } from "./utils/env";
+
+const MAX_QUERY_COMPLEXITY = 4000
 
 export const server = new ApolloServer({
   schema,
