@@ -1,8 +1,8 @@
 import { nonNull, queryField } from "nexus";
 
-export const profile = queryField("viewer", {
+export const viewerQuery = queryField("viewer", {
   type: nonNull("User"),
-  resolve(_parent, _args, ctx) {
+  resolve(_, _args, ctx) {
     return ctx.prisma.user.findUnique({
       where: {
         name: ctx.username,

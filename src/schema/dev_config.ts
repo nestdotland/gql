@@ -28,7 +28,7 @@ export const DevConfigType = objectType({
         return HookKey.members.length * HookMode.members.length
       },
       type: nonNull(list(nonNull("DevConfigHook"))),
-      async resolve(config, _args, ctx) {
+      resolve(config, _args, ctx) {
         return ctx.prisma.devConfigHook.findMany({
           where: {
             authorName: {equals: config.authorName},

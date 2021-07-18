@@ -46,7 +46,7 @@ export const VersionType = objectType({
       ...Version.files,
       complexity,
       args: baseArgs("File"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.file.findMany({
           where: {
             authorName: { equals: version.authorName },
@@ -61,7 +61,7 @@ export const VersionType = objectType({
       ...Version.tags,
       complexity,
       args: baseArgs("Tag"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.tag.findMany({
           where: {
             authorName: { equals: version.authorName },
@@ -77,7 +77,7 @@ export const VersionType = objectType({
       complexity,
       type: nonNull(list(nonNull("Version"))),
       args: baseArgs("Version"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             dependencies: {
@@ -97,7 +97,7 @@ export const VersionType = objectType({
       complexity,
       type: nonNull(list(nonNull("Version"))),
       args: baseArgs("Version"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             dependents: {
@@ -117,7 +117,7 @@ export const VersionType = objectType({
       complexity,
       type: nonNull(list(nonNull("Tag"))),
       args: baseArgs("Tag"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.tag.findMany({
           where: {
             dependents: {
@@ -137,7 +137,7 @@ export const VersionType = objectType({
       complexity,
       type: nonNull(list(nonNull("ThirdPartyModule"))),
       args: baseArgs("ThirdPartyModule"),
-      async resolve(version, args, ctx) {
+      resolve(version, args, ctx) {
         return ctx.prisma.thirdPartyModule.findMany({
           where: {
             dependents: {

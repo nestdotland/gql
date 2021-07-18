@@ -1,9 +1,8 @@
 import { asNexusMethod, makeSchema } from "nexus";
 import { GraphQLDateTime } from "graphql-iso-date";
 import { plugins } from "./plugins";
-import * as queries from "./types/queries";
+import * as queries from "./queries/_all";
 // import * as mutations from "./crud/mutations";
-import * as model from "./types/model";
 import * as allTypes from "./schema/_all";
 import { OrderDirectionEnum } from "./base";
 // import * as objects from "./types/objects";
@@ -12,7 +11,7 @@ import { OrderDirectionEnum } from "./base";
 export const DateTime = asNexusMethod(GraphQLDateTime, "date");
 
 export const schema = makeSchema({
-  types: [OrderDirectionEnum, allTypes, queries, model, DateTime /* input_types */],
+  types: [OrderDirectionEnum, allTypes, queries, DateTime],
   plugins,
   outputs: {
     schema: __dirname + "/../schema.graphql",

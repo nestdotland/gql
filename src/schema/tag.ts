@@ -35,7 +35,7 @@ export const TagType = objectType({
       complexity,
       type: nonNull(list(nonNull("Version"))),
       args: baseArgs("Version"),
-      async resolve(tag, args, ctx) {
+      resolve(tag, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             taggedDependencies: {

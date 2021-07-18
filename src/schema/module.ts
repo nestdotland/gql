@@ -51,7 +51,7 @@ export const ModuleType = objectType({
       ...Module.versions,
       complexity,
       args: baseArgs("Version"),
-      async resolve(module, args, ctx) {
+      resolve(module, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             authorName: { equals: module.authorName },
@@ -65,7 +65,7 @@ export const ModuleType = objectType({
       ...Module.tags,
       complexity,
       args: baseArgs("Tag"),
-      async resolve(module, args, ctx) {
+      resolve(module, args, ctx) {
         return ctx.prisma.tag.findMany({
           where: {
             authorName: { equals: module.authorName },
@@ -80,7 +80,7 @@ export const ModuleType = objectType({
       complexity,
       type: nonNull(list(nonNull("User"))),
       args: baseArgs("User"),
-      async resolve(module, args, ctx) {
+      resolve(module, args, ctx) {
         return ctx.prisma.user.findMany({
           where: {
             contributions: {

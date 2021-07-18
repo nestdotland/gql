@@ -26,7 +26,7 @@ export const ThirdPartyModuleType = objectType({
       complexity,
       type: nonNull(list(nonNull("Version"))),
       args: baseArgs("Version"),
-      async resolve(module, args, ctx) {
+      resolve(module, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             thirdPartyDependencies: {

@@ -14,7 +14,5 @@ export const ThirdPartyHostType = objectType({
   definition(t) {
     t.field(ThirdPartyHost.hostname);
     t.field(ThirdPartyHost.verified);
-
-    // t.model.modules(modelOptions);
   },
 });

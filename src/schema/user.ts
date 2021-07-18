@@ -36,15 +36,26 @@ export const UserType = objectType({
     t.field(User.createdAt);
     t.field(User.updatedAt);
 
-    t.field(User.usageQuota);
+    t.field({
+      ...User.usageQuota,
+      resolve(user, args, ctx, info) {
+        return user.name === ctx.username
+          ? User.usageQuota.resolve(user, args, ctx, info)
+          : null;
+      },
+    });
     t.field({
       ...User.modules,
       complexity,
       args: baseArgs("Module"),
-      async resolve(user, args, ctx) {
+      resolve(user, args, ctx) {
         return ctx.prisma.module.findMany({
           where: {
             authorName: { equals: user.name },
+            private: ctx.username === user.name &&
+                ctx.permissions.get("privateModuleRead")
+              ? {}
+              : { equals: false },
           },
           ...ordering(args),
         });
@@ -54,11 +65,17 @@ export const UserType = objectType({
       ...User.publications,
       complexity,
       args: baseArgs("Version"),
-      async resolve(user, args, ctx) {
+      resolve(user, args, ctx) {
         return ctx.prisma.version.findMany({
           where: {
             publisher: {
               name: { equals: user.name },
+            },
+            module: {
+              private: ctx.username === user.name &&
+                  ctx.permissions.get("privateModuleRead")
+                ? {}
+                : { equals: false },
             },
           },
           ...ordering(args),
@@ -70,7 +87,7 @@ export const UserType = objectType({
       complexity,
       type: nonNull(list(nonNull("Module"))),
       args: baseArgs("Module"),
-      async resolve(user, args, ctx) {
+      resolve(user, args, ctx) {
         return ctx.prisma.module.findMany({
           where: {
             contributors: {
@@ -78,6 +95,10 @@ export const UserType = objectType({
                 contributorName: { equals: user.name },
               },
             },
+            private: ctx.username === user.name &&
+                ctx.permissions.get("privateModuleRead")
+              ? {}
+              : { equals: false },
           },
           ...ordering(args),
         });
@@ -87,13 +108,15 @@ export const UserType = objectType({
       ...User.accessTokens,
       complexity,
       args: baseArgs("AccessToken"),
-      async resolve(user, args, ctx) {
-        return ctx.prisma.accessToken.findMany({
-          where: {
-            username: { equals: user.name },
-          },
-          ...ordering(args),
-        });
+      resolve(user, args, ctx) {
+        return user.name === ctx.username
+          ? ctx.prisma.accessToken.findMany({
+            where: {
+              username: { equals: user.name },
+            },
+            ...ordering(args),
+          })
+          : null;
       },
     });
   },
