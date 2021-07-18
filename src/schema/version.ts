@@ -2,8 +2,8 @@ import { Version } from "nexus-prisma";
 import { objectType } from "nexus";
 import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
-export const ModuleOrderInput = createOrder({
-  name: "Module",
+export const VersionOrderInput = createOrder({
+  name: "Version",
   members: [{
     value: "name",
   }, {

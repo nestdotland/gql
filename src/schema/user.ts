@@ -1,5 +1,5 @@
 import { User } from "nexus-prisma";
-import { objectType } from "nexus";
+import { list, nonNull, objectType } from "nexus";
 import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
 export const UserOrderInput = createOrder({
@@ -31,14 +31,63 @@ export const UserType = objectType({
     t.field(User.updatedAt);
 
     t.field({
+      ...User.usageQuota,
+      async resolve(user, _args, ctx) {
+        return ctx.prisma.usageQuota.findUnique({
+          where: { username: user.name },
+        });
+      },
+    });
+    t.field({
       ...User.modules,
       args: baseArgs("Module"),
-      async resolve(src, args, ctx) {
+      async resolve(user, args, ctx) {
         return ctx.prisma.module.findMany({
           where: {
-            author: {
-              id: { equals: src.id },
+            authorName: { equals: user.name },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...User.publications,
+      args: baseArgs("Version"),
+      async resolve(user, args, ctx) {
+        return ctx.prisma.version.findMany({
+          where: {
+            publisher: {
+              name: { equals: user.name },
             },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...User.contributions,
+      type: nonNull(list(nonNull("Module"))),
+      args: baseArgs("Module"),
+      async resolve(user, args, ctx) {
+        return ctx.prisma.module.findMany({
+          where: {
+            contributors: {
+              some: {
+                contributorName: { equals: user.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...User.accessTokens,
+      args: baseArgs("AccessToken"),
+      async resolve(user, args, ctx) {
+        return ctx.prisma.accessToken.findMany({
+          where: {
+            username: { equals: user.name },
           },
           ...ordering(args),
         });

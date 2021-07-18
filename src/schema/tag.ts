@@ -2,8 +2,8 @@ import { Tag } from "nexus-prisma";
 import { objectType } from "nexus";
 import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
-export const UserOrderInput = createOrder({
-  name: "User",
+export const TagOrderInput = createOrder({
+  name: "Tag",
   members: [{
     value: "name",
   }, {

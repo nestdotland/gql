@@ -2,8 +2,8 @@ import { File } from "nexus-prisma";
 import { objectType } from "nexus";
 import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
-export const UserOrderInput = createOrder({
-  name: "User",
+export const FileOrderInput = createOrder({
+  name: "File",
   members: [{
     value: "path",
   }, {

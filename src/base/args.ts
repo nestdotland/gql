@@ -25,7 +25,7 @@ export function ordering(args: Args) {
     skip: args.after ?? args.before,
     take: args.take,
     orderBy: {
-      [args?.orderBy.field ?? "id"]: args?.orderBy.direction ??
+      [args?.orderBy?.field ?? "id"]: args?.orderBy?.direction ??
         (args.before === undefined ? "asc" : "desc"),
     },
   };
