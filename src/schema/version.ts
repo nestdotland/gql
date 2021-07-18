@@ -1,6 +1,12 @@
 import { Version } from "nexus-prisma";
-import { objectType } from "nexus";
-import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
+import { list, nonNull, objectType } from "nexus";
+import {
+  baseArgs,
+  complexity,
+  createOrder,
+  ordering,
+  setupObjectType,
+} from "../base";
 
 export const VersionOrderInput = createOrder({
   name: "Version",
@@ -34,13 +40,117 @@ export const VersionType = objectType({
     t.field(Version.createdAt);
     t.field(Version.updatedAt);
 
-    // t.model.files(modelOptions);
-    // t.model.tag(modelOptions);
-    // t.model.module();
-    // t.model.publisher();
-    // t.model.dependents(modelOptions);
-    // t.model.dependencies(modelOptions);
-    // t.model.taggedDependencies(modelOptions);
-    // t.model.thirdPartyDependencies(modelOptions);
+    t.field(Version.module);
+    t.field(Version.publisher);
+    t.field({
+      ...Version.files,
+      complexity,
+      args: baseArgs("File"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.file.findMany({
+          where: {
+            authorName: { equals: version.authorName },
+            moduleName: { equals: version.moduleName },
+            versionName: { equals: version.name },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.tags,
+      complexity,
+      args: baseArgs("Tag"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.tag.findMany({
+          where: {
+            authorName: { equals: version.authorName },
+            moduleName: { equals: version.moduleName },
+            versionName: { equals: version.name },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.dependents,
+      complexity,
+      type: nonNull(list(nonNull("Version"))),
+      args: baseArgs("Version"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.version.findMany({
+          where: {
+            dependencies: {
+              some: {
+                dependencyAuthor: { equals: version.authorName },
+                dependencyName: { equals: version.moduleName },
+                dependencyVersion: { equals: version.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.dependencies,
+      complexity,
+      type: nonNull(list(nonNull("Version"))),
+      args: baseArgs("Version"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.version.findMany({
+          where: {
+            dependents: {
+              some: {
+                dependentAuthor: { equals: version.authorName },
+                dependentName: { equals: version.moduleName },
+                dependentVersion: { equals: version.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.taggedDependencies,
+      complexity,
+      type: nonNull(list(nonNull("Tag"))),
+      args: baseArgs("Tag"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.tag.findMany({
+          where: {
+            dependents: {
+              some: {
+                dependentAuthor: { equals: version.authorName },
+                dependentName: { equals: version.moduleName },
+                dependentVersion: { equals: version.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.thirdPartyDependencies,
+      complexity,
+      type: nonNull(list(nonNull("ThirdPartyModule"))),
+      args: baseArgs("ThirdPartyModule"),
+      async resolve(version, args, ctx) {
+        return ctx.prisma.thirdPartyModule.findMany({
+          where: {
+            dependents: {
+              some: {
+                dependentAuthor: { equals: version.authorName },
+                dependentName: { equals: version.moduleName },
+                dependentVersion: { equals: version.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
   },
 });

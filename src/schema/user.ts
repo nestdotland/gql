@@ -1,6 +1,12 @@
 import { User } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
-import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
+import {
+  baseArgs,
+  complexity,
+  createOrder,
+  ordering,
+  setupObjectType,
+} from "../base";
 
 export const UserOrderInput = createOrder({
   name: "User",
@@ -30,16 +36,10 @@ export const UserType = objectType({
     t.field(User.createdAt);
     t.field(User.updatedAt);
 
-    t.field({
-      ...User.usageQuota,
-      async resolve(user, _args, ctx) {
-        return ctx.prisma.usageQuota.findUnique({
-          where: { username: user.name },
-        });
-      },
-    });
+    t.field(User.usageQuota);
     t.field({
       ...User.modules,
+      complexity,
       args: baseArgs("Module"),
       async resolve(user, args, ctx) {
         return ctx.prisma.module.findMany({
@@ -52,6 +52,7 @@ export const UserType = objectType({
     });
     t.field({
       ...User.publications,
+      complexity,
       args: baseArgs("Version"),
       async resolve(user, args, ctx) {
         return ctx.prisma.version.findMany({
@@ -66,6 +67,7 @@ export const UserType = objectType({
     });
     t.field({
       ...User.contributions,
+      complexity,
       type: nonNull(list(nonNull("Module"))),
       args: baseArgs("Module"),
       async resolve(user, args, ctx) {
@@ -83,6 +85,7 @@ export const UserType = objectType({
     });
     t.field({
       ...User.accessTokens,
+      complexity,
       args: baseArgs("AccessToken"),
       async resolve(user, args, ctx) {
         return ctx.prisma.accessToken.findMany({

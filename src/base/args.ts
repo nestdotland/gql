@@ -30,3 +30,12 @@ export function ordering(args: Args) {
     },
   };
 }
+
+interface ComplexityInput {
+  args: Args;
+  childComplexity: number;
+}
+
+export function complexity({ args, childComplexity }: ComplexityInput) {
+  return args.take * childComplexity;
+}

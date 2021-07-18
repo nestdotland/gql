@@ -18,7 +18,5 @@ export const PublishConfigType = objectType({
     t.field(PublishConfig.lockfile);
     t.field(PublishConfig.importMap);
     t.field(PublishConfig.updatedAt);
-
-    // t.model.module();
   },
 });

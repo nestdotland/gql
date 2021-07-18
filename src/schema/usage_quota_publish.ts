@@ -15,7 +15,5 @@ export const UsageQuotaPublishType = objectType({
     t.field(UsageQuotaPublish.size);
     t.field(UsageQuotaPublish.private);
     t.field(UsageQuotaPublish.reset);
-
-    // t.model.quota();
   },
 });

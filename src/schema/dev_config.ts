@@ -1,6 +1,12 @@
-import { DevConfig } from "nexus-prisma";
-import { objectType } from "nexus";
-import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
+import { DevConfig, HookKey, HookMode } from "nexus-prisma";
+import { list, nonNull, objectType } from "nexus";
+import {
+  baseArgs,
+  complexity,
+  createOrder,
+  ordering,
+  setupObjectType,
+} from "../base";
 
 export const DevConfigOrderInput = createOrder({
   name: "DevConfig",
@@ -16,7 +22,20 @@ export const DevConfigType = objectType({
     t.field(DevConfig.ignore);
     t.field(DevConfig.updatedAt);
 
-    // t.model.module();
-    // t.model.hooks(modelOptions);
+    t.field({
+      ...DevConfig.hooks,
+      complexity() {
+        return HookKey.members.length * HookMode.members.length
+      },
+      type: nonNull(list(nonNull("DevConfigHook"))),
+      async resolve(config, _args, ctx) {
+        return ctx.prisma.devConfigHook.findMany({
+          where: {
+            authorName: {equals: config.authorName},
+            moduleName: {equals: config.moduleName}
+          },
+        });
+      },
+    });
   },
 });

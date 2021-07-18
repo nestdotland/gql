@@ -26,7 +26,5 @@ export const DevConfigHookType = objectType({
     t.field(DevConfigHook.mode);
     t.field(DevConfigHook.value);
     t.field(DevConfigHook.updatedAt);
-
-    // t.model.config();
   },
 });

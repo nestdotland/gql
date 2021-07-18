@@ -1,6 +1,12 @@
 import { ThirdPartyModule } from "nexus-prisma";
-import { objectType } from "nexus";
-import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
+import { list, nonNull, objectType } from "nexus";
+import {
+  baseArgs,
+  complexity,
+  createOrder,
+  ordering,
+  setupObjectType,
+} from "../base";
 
 export const ThirdPartyModuleOrderInput = createOrder({
   name: "ThirdPartyModule",
@@ -14,7 +20,25 @@ export const ThirdPartyModuleType = objectType({
   definition(t) {
     t.field(ThirdPartyModule.path);
 
-    // t.model.host();
-    // t.model.dependents(modelOptions);
+    t.field(ThirdPartyModule.host);
+    t.field({
+      ...ThirdPartyModule.dependents,
+      complexity,
+      type: nonNull(list(nonNull("Version"))),
+      args: baseArgs("Version"),
+      async resolve(module, args, ctx) {
+        return ctx.prisma.version.findMany({
+          where: {
+            thirdPartyDependencies: {
+              some: {
+                dependencyHost: { equals: module.hostname },
+                dependencyPath: { equals: module.path },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
   },
 });

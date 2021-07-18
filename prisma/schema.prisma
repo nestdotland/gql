@@ -14,7 +14,7 @@ datasource db {
 /// This is a user!
 model User {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()")) // TODO(@maximousblk): remove @default() in prod
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid // TODO(@maximousblk): remove @default() in prod
   /// This is a name!
   name      String   @db.VarChar(64)
   fullName  String?  @db.VarChar(64)
@@ -38,7 +38,7 @@ model User {
 
 model Module {
   // Properties
-  id          String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id          String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   name        String   @db.VarChar(64) // inconsistent with User
   fullName    String?  @db.VarChar(64)
   description String?
@@ -60,12 +60,12 @@ model Module {
   authorName String @db.VarChar(64)
 
   // Relationships
-  versions      Version[]      @relation("rVersionToModule")
-  contributors  Contribution[] @relation("rContributionToModule")
   author        User           @relation("rModuleToAuthor", fields: [authorName], references: [name])
-  tags          Tag[]          @relation("rTagToModule")
   publishConfig PublishConfig? @relation("rPublishConfigToModule")
   devConfig     DevConfig?     @relation("rDevConfigToModule")
+  versions      Version[]      @relation("rVersionToModule")
+  tags          Tag[]          @relation("rTagToModule")
+  contributors  Contribution[] @relation("rContributionToModule")
 
   // Primary Key
   @@id([authorName, name])
@@ -73,7 +73,7 @@ model Module {
 
 model Version {
   // Properties
-  id            String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id            String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   name          String   @db.VarChar(64)
   publisherName String   @db.VarChar(64)
   deprecated    Boolean  @default(false)
@@ -92,10 +92,10 @@ model Version {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  files                  File[]                      @relation("rFileToVersion")
-  tag                    Tag[]                       @relation("rTagToVersion")
   module                 Module                      @relation("rVersionToModule", fields: [authorName, moduleName], references: [authorName, name])
   publisher              User                        @relation("rVersionToUser", fields: [publisherName], references: [name])
+  files                  File[]                      @relation("rFileToVersion")
+  tags                   Tag[]                       @relation("rTagToVersion")
   dependents             DependencyGraph[]           @relation("rDependentToDependency")
   dependencies           DependencyGraph[]           @relation("rDependencyToDependent")
   taggedDependencies     TaggedDependencyGraph[]     @relation("rTaggedDependencyToDependent")
@@ -107,7 +107,7 @@ model Version {
 
 model Tag {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   name      String   @db.VarChar(64)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -128,7 +128,7 @@ model Tag {
 
 model File {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   path      String
   url       String
   mimeType  String?  @db.VarChar(64)
@@ -148,7 +148,7 @@ model File {
 
 model PublishConfig {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   main      String?
   bin       String[]
   lockfile  String?
@@ -168,7 +168,7 @@ model PublishConfig {
 
 model DevConfig {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   ignore    String[]
   updatedAt DateTime @default(now()) @updatedAt
 
@@ -197,7 +197,7 @@ enum HookKey {
 
 model DevConfigHook {
   // Properties
-  id        String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id        String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   key       HookKey
   mode      HookMode
   value     String
@@ -217,7 +217,7 @@ model DevConfigHook {
 
 model UsageQuota {
   // Properties
-  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
 
   // Foreign keys
   username String @db.VarChar(64)
@@ -233,7 +233,7 @@ model UsageQuota {
 
 model UsageQuotaApi {
   // Properties
-  id    String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id    String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   limit Int      @default(60)
   used  Int      @default(0)
   reset DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
@@ -250,7 +250,7 @@ model UsageQuotaApi {
 
 model UsageQuotaPublish {
   // Properties
-  id      String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id      String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   limit   Int      @default(20)
   used    Int      @default(0)
   size    Int      @default(200000000)
@@ -269,7 +269,7 @@ model UsageQuotaPublish {
 
 model DependencyGraph {
   // Properties
-  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
 
   // Foreign keys
   dependentAuthor   String @db.VarChar(64)
@@ -289,7 +289,7 @@ model DependencyGraph {
 
 model TaggedDependencyGraph {
   // Properties
-  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
 
   // Foreign keys
   dependentAuthor  String @db.VarChar(64)
@@ -309,7 +309,7 @@ model TaggedDependencyGraph {
 
 model ThirdPartyModule {
   // Properties
-  id   String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id   String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   path String
 
   // Foreign keys
@@ -325,7 +325,7 @@ model ThirdPartyModule {
 
 model ThirdPartyHost {
   // Properties
-  id       String  @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id       String  @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   hostname String
   verified Boolean @default(false)
 
@@ -338,7 +338,7 @@ model ThirdPartyHost {
 
 model ThirdPartyDependencyGraph {
   // Properties
-  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
 
   // Foreign keys
   dependentAuthor  String @db.VarChar(64)
@@ -357,7 +357,7 @@ model ThirdPartyDependencyGraph {
 
 model Contribution {
   // Properties
-  id String @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id String @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
 
   // Foreign keys
   contributorName String @db.VarChar(64)
@@ -374,7 +374,7 @@ model Contribution {
 
 model AccessToken {
   // Properties
-  id          String   @db.Uuid @unique @default(dbgenerated("extensions.uuid_generate_v4()"))
+  id          String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   sha256      String   @db.Char(44)
   permissions String   @default("00000000000000000000000000000000") @db.Bit(32)
   createdAt   DateTime @default(now())

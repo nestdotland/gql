@@ -25,6 +25,6 @@ export const FileType = objectType({
     t.field(File.mimeType);
     t.field(File.createdAt);
 
-    // t.model.version();
+    t.field(File.version);
   },
 });

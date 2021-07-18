@@ -1,6 +1,12 @@
 import { Tag } from "nexus-prisma";
-import { objectType } from "nexus";
-import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
+import { list, nonNull, objectType } from "nexus";
+import {
+  baseArgs,
+  complexity,
+  createOrder,
+  ordering,
+  setupObjectType,
+} from "../base";
 
 export const TagOrderInput = createOrder({
   name: "Tag",
@@ -22,8 +28,28 @@ export const TagType = objectType({
     t.field(Tag.createdAt);
     t.field(Tag.updatedAt);
 
-    // t.model.module();
-    // t.model.version();
-    // t.model.dependents(modelOptions);
+    t.field(Tag.module);
+    t.field(Tag.version);
+    t.field({
+      ...Tag.dependents,
+      complexity,
+      type: nonNull(list(nonNull("Version"))),
+      args: baseArgs("Version"),
+      async resolve(tag, args, ctx) {
+        return ctx.prisma.version.findMany({
+          where: {
+            taggedDependencies: {
+              some: {
+                dependencyAuthor: { equals: tag.authorName },
+                dependencyName: { equals: tag.moduleName },
+                dependentVersion: { equals: tag.versionName },
+                dependencyTag: { equals: tag.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
   },
 });

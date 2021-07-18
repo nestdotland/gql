@@ -13,7 +13,5 @@ export const UsageQuotaApiType = objectType({
     });
     t.field(UsageQuotaApi.used);
     t.field(UsageQuotaApi.reset);
-
-    // t.model.quota();
   },
 });
