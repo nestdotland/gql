@@ -116,7 +116,7 @@ export const UserType = objectType({
             },
             ...ordering(args),
           })
-          : null;
+          : [];
       },
     });
   },

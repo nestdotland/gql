@@ -1,4 +1,9 @@
-import { AccessToken, Prisma, PrismaClient } from "@prisma/client";
+import {
+  AccessToken,
+  Prisma,
+  PrismaClient,
+  UsageQuotaApi,
+} from "@prisma/client";
 import {
   ApolloError,
   AuthenticationError,
@@ -13,11 +18,10 @@ export interface Context {
   username: string;
   permissions: Permissions;
   accessToken: AccessToken;
+  quota: UsageQuotaApi;
 }
 
 const prisma = new PrismaClient();
-
-const admins: string[] = ["nestland"];
 
 /** Auth check on every request */
 export async function context({ req }: ExpressContext): Promise<Context> {
@@ -40,16 +44,14 @@ export async function context({ req }: ExpressContext): Promise<Context> {
     }
 
     const { username } = accessToken;
-
-    if (!admins.includes(username)) {
-      rateLimiter(username);
-    }
+    const quota = await rateLimiter(username);
 
     return {
       prisma,
       username,
       permissions: new Permissions(accessToken.permissions),
       accessToken,
+      quota,
     };
   }
 
@@ -58,7 +60,8 @@ export async function context({ req }: ExpressContext): Promise<Context> {
   );
 }
 
-async function rateLimiter(username: string) {
+/** API quotas */
+async function rateLimiter(username: string): Promise<UsageQuotaApi> {
   const quota = await prisma.usageQuota.findUnique({
     where: { username },
   });
@@ -80,6 +83,10 @@ async function rateLimiter(username: string) {
   const apiQuota = await prisma.usageQuotaApi.findUnique({
     where: { username },
   });
+
+  if (apiQuota === null) {
+    throw new Error("API quota not found.")
+  }
 
   const data: Prisma.UsageQuotaApiUpdateInput = {
     used: apiQuota.used + 1,
@@ -106,4 +113,6 @@ async function rateLimiter(username: string) {
       "TOO_MANY_REQUESTS",
     );
   }
+
+  return apiQuota;
 }

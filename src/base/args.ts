@@ -12,17 +12,17 @@ export function baseArgs<S extends OrderLike>(name: S) {
 
 interface Args {
   take: number;
-  after?: number;
-  before?: number;
+  after?: number | null;
+  before?: number | null;
   orderBy?: {
     field: string;
     direction: "asc" | "desc";
-  };
+  } | null;
 }
 
 export function ordering(args: Args) {
   return {
-    skip: args.after ?? args.before,
+    skip: args.after ?? args.before ?? undefined,
     take: args.take,
     orderBy: {
       [args?.orderBy?.field ?? "id"]: args?.orderBy?.direction ??
@@ -37,5 +37,5 @@ interface ComplexityInput {
 }
 
 export function complexity({ args, childComplexity }: ComplexityInput) {
-  return args.take * childComplexity;
+  return (args?.take ?? 1) * childComplexity;
 }

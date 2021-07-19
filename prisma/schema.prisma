@@ -233,10 +233,11 @@ model UsageQuota {
 
 model UsageQuotaApi {
   // Properties
-  id    String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  limit Int      @default(60)
-  used  Int      @default(0)
-  reset DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  id            String   @unique @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  limit         Int      @default(60)
+  used          Int      @default(0)
+  reset         DateTime @default(now()) // TODO(@maximousblk): remove @default() in prod
+  maxComplexity Int      @default(4000)
 
   // Foreign keys
   username String @db.VarChar(64)

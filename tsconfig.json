@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "sourceMap": false,
-    "rootDirs": ["src", "prisma"],
     "outDir": "dist",
-    "strict": false,
+    "rootDir": "src",
     "lib": ["esnext"],
+    "strict": true,
     "esModuleInterop": true
-  }
+  },
+  "include": ["src/**/*"]
 }

@@ -1,6 +1,6 @@
 interface $$Type<T extends string> {
   $name: T;
-  $description: string;
+  $description?: string;
 }
 
 export function setupObjectType<T extends string>(type: $$Type<T>) {

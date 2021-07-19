@@ -1,17 +1,19 @@
 import { nonNull, queryField, stringArg } from "nexus";
 
-export const moduleQuery = queryField("module", {
-  type: "Module",
+export const tagQuery = queryField("tag", {
+  type: "Tag",
   args: {
     author: nonNull(stringArg()),
     module: nonNull(stringArg()),
+    tag: nonNull(stringArg()),
   },
   resolve(_, args, ctx) {
-    return ctx.prisma.module.findUnique({
+    return ctx.prisma.tag.findUnique({
       where: {
-        authorName_name: {
+        authorName_moduleName_name: {
           authorName: args.author,
-          name: args.module,
+          moduleName: args.module,
+          name: args.tag,
         },
       },
     });
