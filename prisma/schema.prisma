@@ -11,6 +11,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// TODO: comment the schema with triple slash comments
+// => description of fields and schema in the API
+
 /// This is a user!
 model User {
   // Properties
