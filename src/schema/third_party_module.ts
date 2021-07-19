@@ -1,18 +1,14 @@
 import { ThirdPartyModule } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
-import {
-  baseArgs,
-  complexity,
-  createOrder,
-  ordering,
-  setupObjectType,
-} from "../base";
+import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 
 export const ThirdPartyModuleOrderInput = createOrder({
   name: "ThirdPartyModule",
-  members: [{
-    value: "path",
-  }],
+  members: [
+    {
+      value: "path",
+    },
+  ],
 });
 
 export const ThirdPartyModuleType = objectType({

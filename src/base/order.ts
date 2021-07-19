@@ -3,17 +3,19 @@ import type { AllInputTypes } from "nexus";
 
 export const OrderDirectionEnum = enumType({
   name: "OrderDirection",
-  description:
-    "Possible directions in which to order a list of items when provided an `orderBy` argument.",
-  members: [{
-    name: "ASC",
-    value: "asc",
-    description: "Specifies an ascending order for a given `orderBy` argument.",
-  }, {
-    name: "DESC",
-    value: "desc",
-    description: "Specifies a descending order for a given `orderBy` argument.",
-  }],
+  description: "Possible directions in which to order a list of items when provided an `orderBy` argument.",
+  members: [
+    {
+      name: "ASC",
+      value: "asc",
+      description: "Specifies an ascending order for a given `orderBy` argument.",
+    },
+    {
+      name: "DESC",
+      value: "desc",
+      description: "Specifies a descending order for a given `orderBy` argument.",
+    },
+  ],
 });
 
 function camelToMacroCase(str: string): string {
@@ -21,7 +23,7 @@ function camelToMacroCase(str: string): string {
 }
 
 interface EnumTypeMember {
-  name?: string
+  name?: string;
   value: string;
   by?: string;
 }
@@ -35,9 +37,7 @@ interface OrderField<S extends string> {
 type ExtractOrder<S> = S extends `${infer T}OrderField` ? T : never;
 export type OrderLike = ExtractOrder<AllInputTypes>;
 
-export function createOrder<S extends OrderLike>(
-  field: OrderField<S>,
-) {
+export function createOrder<S extends OrderLike>(field: OrderField<S>) {
   const plural = field.pluralName ?? `${field.name.toLowerCase()}s`;
   const orderField = enumType({
     name: `${field.name}OrderField`,

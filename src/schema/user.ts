@@ -1,27 +1,26 @@
 import { User } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
-import {
-  baseArgs,
-  complexity,
-  createOrder,
-  ordering,
-  setupObjectType,
-} from "../base";
+import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 
 export const UserOrderInput = createOrder({
   name: "User",
-  members: [{
-    value: "name",
-  }, {
-    value: "fullName",
-    by: "full name",
-  }, {
-    value: "createdAt",
-    by: "creation time",
-  }, {
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "name",
+    },
+    {
+      value: "fullName",
+      by: "full name",
+    },
+    {
+      value: "createdAt",
+      by: "creation time",
+    },
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const UserType = objectType({
@@ -39,9 +38,7 @@ export const UserType = objectType({
     t.field({
       ...User.usageQuota,
       resolve(user, args, ctx, info) {
-        return user.name === ctx.username
-          ? User.usageQuota.resolve(user, args, ctx, info)
-          : null;
+        return user.name === ctx.username ? User.usageQuota.resolve(user, args, ctx, info) : null;
       },
     });
     t.field({
@@ -52,10 +49,7 @@ export const UserType = objectType({
         return ctx.prisma.module.findMany({
           where: {
             authorName: { equals: user.name },
-            private: ctx.username === user.name &&
-                ctx.permissions.get("privateModuleRead")
-              ? {}
-              : { equals: false },
+            private: ctx.username === user.name && ctx.permissions.get("privateModuleRead") ? {} : { equals: false },
           },
           ...ordering(args),
         });
@@ -72,10 +66,7 @@ export const UserType = objectType({
               name: { equals: user.name },
             },
             module: {
-              private: ctx.username === user.name &&
-                  ctx.permissions.get("privateModuleRead")
-                ? {}
-                : { equals: false },
+              private: ctx.username === user.name && ctx.permissions.get("privateModuleRead") ? {} : { equals: false },
             },
           },
           ...ordering(args),
@@ -95,10 +86,7 @@ export const UserType = objectType({
                 contributorName: { equals: user.name },
               },
             },
-            private: ctx.username === user.name &&
-                ctx.permissions.get("privateModuleRead")
-              ? {}
-              : { equals: false },
+            private: ctx.username === user.name && ctx.permissions.get("privateModuleRead") ? {} : { equals: false },
           },
           ...ordering(args),
         });
@@ -111,11 +99,11 @@ export const UserType = objectType({
       resolve(user, args, ctx) {
         return user.name === ctx.username
           ? ctx.prisma.accessToken.findMany({
-            where: {
-              username: { equals: user.name },
-            },
-            ...ordering(args),
-          })
+              where: {
+                username: { equals: user.name },
+              },
+              ...ordering(args),
+            })
           : [];
       },
     });

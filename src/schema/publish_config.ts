@@ -4,10 +4,12 @@ import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
 export const PublishConfigOrderInput = createOrder({
   name: "PublishConfig",
-  members: [{
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const PublishConfigType = objectType({

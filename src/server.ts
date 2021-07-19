@@ -1,9 +1,5 @@
 import { ApolloServer } from "apollo-server";
-import {
-  fieldExtensionsEstimator,
-  getComplexity,
-  simpleEstimator,
-} from "graphql-query-complexity";
+import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from "graphql-query-complexity";
 import { separateOperations } from "graphql";
 import { schema } from "./schema";
 import { Context, context } from "./context";
@@ -24,9 +20,7 @@ export const server = new ApolloServer({
                 // To calculate query complexity properly,
                 // we have to check if the document contains multiple operations
                 // and eventually extract it operation from the whole query document.
-                query: request.operationName
-                  ? separateOperations(document)[request.operationName]
-                  : document,
+                query: request.operationName ? separateOperations(document)[request.operationName] : document,
                 variables: request.variables,
                 estimators: [
                   // Enables nexus custom complexity fields.
@@ -38,7 +32,7 @@ export const server = new ApolloServer({
               });
               if (complexity >= maxComplexity) {
                 throw new ForbiddenError(
-                  `Query is too complex: ${complexity}. Maximum allowed complexity: ${maxComplexity}`,
+                  `Query is too complex: ${complexity}. Maximum allowed complexity: ${maxComplexity}`
                 );
               }
             },

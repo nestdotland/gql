@@ -5,15 +5,19 @@ import { Permissions } from "../utils/permission";
 
 export const AccessTokenOrderInput = createOrder({
   name: "AccessToken",
-  members: [{
-    value: "permissions",
-  }, {
-    value: "createdAt",
-    by: "creation time",
-  }, {
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "permissions",
+    },
+    {
+      value: "createdAt",
+      by: "creation time",
+    },
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const AccessTokenType = objectType({

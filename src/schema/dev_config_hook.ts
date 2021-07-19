@@ -4,16 +4,21 @@ import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
 export const DevConfigHookOrderInput = createOrder({
   name: "DevConfigHook",
-  members: [{
-    value: "key",
-  }, {
-    value: "mode",
-  }, {
-    value: "value",
-  }, {
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "key",
+    },
+    {
+      value: "mode",
+    },
+    {
+      value: "value",
+    },
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const HookModeEnum = enumType(HookMode);

@@ -1,27 +1,26 @@
 import { Module } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
-import {
-  baseArgs,
-  complexity,
-  createOrder,
-  ordering,
-  setupObjectType,
-} from "../base";
+import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 
 export const ModuleOrderInput = createOrder({
   name: "Module",
-  members: [{
-    value: "name",
-  }, {
-    value: "fullName",
-    by: "full name",
-  }, {
-    value: "createdAt",
-    by: "creation time",
-  }, {
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "name",
+    },
+    {
+      value: "fullName",
+      by: "full name",
+    },
+    {
+      value: "createdAt",
+      by: "creation time",
+    },
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const ModuleType = objectType({

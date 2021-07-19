@@ -4,9 +4,11 @@ import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
 export const ThirdPartyHostOrderInput = createOrder({
   name: "ThirdPartyHost",
-  members: [{
-    value: "hostname",
-  }],
+  members: [
+    {
+      value: "hostname",
+    },
+  ],
 });
 
 export const ThirdPartyHostType = objectType({

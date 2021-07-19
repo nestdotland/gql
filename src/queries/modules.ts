@@ -11,9 +11,7 @@ export const modulesQuery = queryField("modules", {
           {
             private: { equals: false },
           },
-          ctx.permissions.get("privateModuleRead")
-            ? { author: { name: { equals: ctx.username } } }
-            : {},
+          ctx.permissions.get("privateModuleRead") ? { author: { name: { equals: ctx.username } } } : {},
         ],
       },
       ...ordering(args),

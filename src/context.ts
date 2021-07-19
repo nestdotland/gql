@@ -1,15 +1,5 @@
-import {
-  AccessToken,
-  Prisma,
-  PrismaClient,
-  UsageQuotaApi,
-} from "@prisma/client";
-import {
-  ApolloError,
-  AuthenticationError,
-  ExpressContext,
-  SyntaxError,
-} from "apollo-server-express";
+import { AccessToken, Prisma, PrismaClient, UsageQuotaApi } from "@prisma/client";
+import { ApolloError, AuthenticationError, ExpressContext, SyntaxError } from "apollo-server-express";
 import { hashToken } from "./utils/token";
 import { Permissions } from "./utils/permission";
 
@@ -30,9 +20,7 @@ export async function context({ req }: ExpressContext): Promise<Context> {
 
   if (token) {
     if (Array.isArray(token)) {
-      throw new SyntaxError(
-        "Received an array of tokens. Please provide a string.",
-      );
+      throw new SyntaxError("Received an array of tokens. Please provide a string.");
     }
 
     const accessToken = await prisma.accessToken.findUnique({
@@ -55,9 +43,7 @@ export async function context({ req }: ExpressContext): Promise<Context> {
     };
   }
 
-  throw new AuthenticationError(
-    "GraphQL API is authenticated only. Please provide an access token.",
-  );
+  throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
 }
 
 /** API quotas */
@@ -85,7 +71,7 @@ async function rateLimiter(username: string): Promise<UsageQuotaApi> {
   });
 
   if (apiQuota === null) {
-    throw new Error("API quota not found.")
+    throw new Error("API quota not found.");
   }
 
   const data: Prisma.UsageQuotaApiUpdateInput = {
@@ -108,10 +94,7 @@ async function rateLimiter(username: string): Promise<UsageQuotaApi> {
   }
 
   if (apiQuota.used >= apiQuota.limit) {
-    throw new ApolloError(
-      `Too many requests, please try again later. (${apiQuota.limit} req/h)`,
-      "TOO_MANY_REQUESTS",
-    );
+    throw new ApolloError(`Too many requests, please try again later. (${apiQuota.limit} req/h)`, "TOO_MANY_REQUESTS");
   }
 
   return apiQuota;

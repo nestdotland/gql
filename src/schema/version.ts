@@ -1,28 +1,27 @@
 import { Version } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
-import {
-  baseArgs,
-  complexity,
-  createOrder,
-  ordering,
-  setupObjectType,
-} from "../base";
+import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 
 export const VersionOrderInput = createOrder({
   name: "Version",
-  members: [{
-    value: "name",
-  }, {
-    name: "PUBLISHER",
-    value: "publisherName",
-    by: "publisher name",
-  }, {
-    value: "createdAt",
-    by: "creation time",
-  }, {
-    value: "updatedAt",
-    by: "update time",
-  }],
+  members: [
+    {
+      value: "name",
+    },
+    {
+      name: "PUBLISHER",
+      value: "publisherName",
+      by: "publisher name",
+    },
+    {
+      value: "createdAt",
+      by: "creation time",
+    },
+    {
+      value: "updatedAt",
+      by: "update time",
+    },
+  ],
 });
 
 export const VersionType = objectType({

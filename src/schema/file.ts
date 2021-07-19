@@ -4,17 +4,22 @@ import { baseArgs, createOrder, ordering, setupObjectType } from "../base";
 
 export const FileOrderInput = createOrder({
   name: "File",
-  members: [{
-    value: "path",
-  }, {
-    value: "url",
-  }, {
-    value: "fullName",
-    by: "full name",
-  }, {
-    value: "createdAt",
-    by: "creation time",
-  }],
+  members: [
+    {
+      value: "path",
+    },
+    {
+      value: "url",
+    },
+    {
+      value: "fullName",
+      by: "full name",
+    },
+    {
+      value: "createdAt",
+      by: "creation time",
+    },
+  ],
 });
 
 export const FileType = objectType({

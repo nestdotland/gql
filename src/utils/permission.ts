@@ -29,7 +29,7 @@ export class Permissions {
 
   set(key: keyof typeof Keys, value: boolean) {
     const offset = Keys[key];
-    this.bits &= ~((2 ** offset) * (+value));
+    this.bits &= ~(2 ** offset * +value);
   }
 
   toString(): string {
