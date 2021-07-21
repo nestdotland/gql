@@ -15,35 +15,38 @@ const prisma = new PrismaClient();
 
 /** Auth check on every request */
 export async function context({ req }: ExpressContext): Promise<Context> {
-  // TODO: extract token from authorization header
-  const token = req.headers && req.headers.token;
-
-  if (token) {
-    if (Array.isArray(token)) {
-      throw new SyntaxError("Received an array of tokens. Please provide a string.");
-    }
-
-    const accessToken = await prisma.accessToken.findUnique({
-      where: { sha256: hashToken(token) },
-    });
-
-    if (accessToken === null) {
-      throw new AuthenticationError("The given token is invalid.");
-    }
-
-    const { username } = accessToken;
-    const quota = await rateLimiter(username);
-
-    return {
-      prisma,
-      username,
-      permissions: new Permissions(accessToken.permissions),
-      accessToken,
-      quota,
-    };
+  const { authorization } = req.headers;
+  if (authorization === undefined) {
+    throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
+  }
+  if (!authorization.startsWith("Bearer ")) {
+    throw new AuthenticationError("No bearer token found in the Authorization header.");
   }
 
-  throw new AuthenticationError("GraphQL API is authenticated only. Please provide an access token.");
+  const token = authorization.substring(7);
+
+  if (Array.isArray(token)) {
+    throw new SyntaxError("Received an array of tokens. Please provide a string.");
+  }
+
+  const accessToken = await prisma.accessToken.findUnique({
+    where: { sha256: hashToken(token) },
+  });
+
+  if (accessToken === null) {
+    throw new AuthenticationError("The given token is invalid.");
+  }
+
+  const { username } = accessToken;
+  const quota = await rateLimiter(username);
+
+  return {
+    prisma,
+    username,
+    permissions: new Permissions(accessToken.permissions),
+    accessToken,
+    quota,
+  };
 }
 
 /** API quotas */
@@ -72,6 +75,10 @@ async function rateLimiter(username: string): Promise<UsageQuotaApi> {
 
   if (apiQuota === null) {
     throw new Error("API quota not found.");
+  }
+
+  if (apiQuota.limit < 0) {
+    return apiQuota;
   }
 
   const data: Prisma.UsageQuotaApiUpdateInput = {
