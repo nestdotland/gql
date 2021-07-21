@@ -29,12 +29,6 @@ export const AccessTokenType = objectType({
         return parseInt(token.permissions, 2);
       },
     });
-    t.field("permissions", {
-      type: "Permissions",
-      resolve(token) {
-        return new Permissions(token.permissions);
-      },
-    });
     t.field(AccessToken.createdAt);
     t.field(AccessToken.updatedAt);
     t.nonNull.boolean("isUsed", {
