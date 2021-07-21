@@ -1,4 +1,5 @@
 import { nonNull, queryField, stringArg } from "nexus";
+import { checkNotFound } from "../base";
 
 export const tagQuery = queryField("tag", {
   type: "Tag",
@@ -8,14 +9,17 @@ export const tagQuery = queryField("tag", {
     tag: nonNull(stringArg()),
   },
   resolve(_, args, ctx) {
-    return ctx.prisma.tag.findUnique({
-      where: {
-        authorName_moduleName_name: {
-          authorName: args.author,
-          moduleName: args.module,
-          name: args.tag,
+    return checkNotFound(
+      "Tag",
+      ctx.prisma.tag.findUnique({
+        where: {
+          authorName_moduleName_name: {
+            authorName: args.author,
+            moduleName: args.module,
+            name: args.tag,
+          },
         },
-      },
-    });
+      })
+    );
   },
 });

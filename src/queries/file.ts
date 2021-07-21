@@ -1,4 +1,5 @@
 import { nonNull, queryField, stringArg } from "nexus";
+import { checkNotFound } from "../base";
 
 export const fileQuery = queryField("file", {
   type: "File",
@@ -9,15 +10,18 @@ export const fileQuery = queryField("file", {
     path: nonNull(stringArg()),
   },
   resolve(_, args, ctx) {
-    return ctx.prisma.file.findUnique({
-      where: {
-        authorName_moduleName_versionName_path: {
-          authorName: args.author,
-          moduleName: args.module,
-          versionName: args.version,
-          path: args.path,
+    return checkNotFound(
+      "File",
+      ctx.prisma.file.findUnique({
+        where: {
+          authorName_moduleName_versionName_path: {
+            authorName: args.author,
+            moduleName: args.module,
+            versionName: args.version,
+            path: args.path,
+          },
         },
-      },
-    });
+      })
+    );
   },
 });

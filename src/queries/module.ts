@@ -1,4 +1,5 @@
 import { nonNull, queryField, stringArg } from "nexus";
+import { checkNotFound } from "../base";
 
 export const moduleQuery = queryField("module", {
   type: "Module",
@@ -6,14 +7,17 @@ export const moduleQuery = queryField("module", {
     author: nonNull(stringArg()),
     module: nonNull(stringArg()),
   },
-  resolve(_, args, ctx) {
-    return ctx.prisma.module.findUnique({
-      where: {
-        authorName_name: {
-          authorName: args.author,
-          name: args.module,
+  async resolve(_, args, ctx) {
+    return checkNotFound(
+      "Module",
+      ctx.prisma.module.findUnique({
+        where: {
+          authorName_name: {
+            authorName: args.author,
+            name: args.module,
+          },
         },
-      },
-    });
+      })
+    );
   },
 });
