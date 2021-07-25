@@ -1,36 +1,10 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "alwaysStrict": true,
-    "declaration": false,
-    "sourceMap": false,
-    "esModuleInterop": true,
-    "lib": ["ES6", "DOM"],
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "noEmitOnError": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "pretty": true,
     "outDir": "dist",
-    "removeComments": true,
-    "resolveJsonModule": true,
+    "rootDir": "src",
+    "lib": ["esnext"],
     "strict": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "target": "ES6",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/utils/*": ["utils/*"],
-      "@/src/*": ["src/*"],
-      "@/lib/*": ["lib/*"]
-    }
+    "esModuleInterop": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"]
 }

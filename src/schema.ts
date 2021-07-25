@@ -1,15 +1,15 @@
 import { asNexusMethod, makeSchema } from "nexus";
 import { GraphQLDateTime } from "graphql-iso-date";
 import { plugins } from "./plugins";
-import * as queries from "./crud/queries";
-import * as mutations from "./crud/mutations";
-import * as types from "./types/model";
-import * as input_types from "./types/input";
+import * as queries from "./queries/_all";
+import * as mutations from "./mutations/_all";
+import * as allTypes from "./schema/_all";
+import { OrderDirectionEnum } from "./base";
 
 export const DateTime = asNexusMethod(GraphQLDateTime, "date");
 
 export const schema = makeSchema({
-  types: [queries, mutations, types, DateTime, input_types],
+  types: [allTypes, queries, mutations, DateTime, OrderDirectionEnum],
   plugins,
   outputs: {
     schema: __dirname + "/../schema.graphql",
@@ -18,13 +18,5 @@ export const schema = makeSchema({
   contextType: {
     module: require.resolve("./context"),
     export: "Context",
-  },
-  sourceTypes: {
-    modules: [
-      {
-        module: "@prisma/client",
-        alias: "prisma",
-      },
-    ],
   },
 });

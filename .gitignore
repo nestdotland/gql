@@ -10,3 +10,5 @@ connect.sh
 prisma/migrations
 schema.graphql
 src/generated
+
+*_
