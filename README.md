@@ -1,6 +1,8 @@
-# Template
+# Nest GraphQL API
 
-A template for nest.land repositories. Remove this sentence and change this header to describe the project this template is being used for.
+Nest's (soon to be) official GraphQL API to query and mutate module data
+
+> ### **NOTE:** _Nest GraphQL API is still under development and non operational. Until official release, [x](https://github.com/nestdotland/x) is the official API._
 
 ## Getting started
 
