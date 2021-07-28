@@ -15,6 +15,7 @@
     "fmt:write": "prettier --write src",
     "seed": "prisma db seed --preview-feature",
     "seed2": "ts-node ./prisma/seed.ts",
+    "push": "prisma db push",
     "migrate": "prisma migrate dev --preview-feature --name",
     "migrate:init": "prisma migrate dev --preview-feature --name init --create-only",
     "generate": "npm -s run generate:prisma && npm -s run generate:nexus",
