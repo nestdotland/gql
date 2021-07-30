@@ -24,11 +24,6 @@ export const AccessTokenType = objectType({
   ...setupObjectType(AccessToken),
   definition(t) {
     t.field(AccessToken.sha256);
-    t.nonNull.int("permissionsInteger", {
-      resolve(token) {
-        return parseInt(token.permissions, 2);
-      },
-    });
     t.field(AccessToken.createdAt);
     t.field(AccessToken.updatedAt);
     t.nonNull.boolean("isUsed", {

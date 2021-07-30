@@ -1,5 +1,5 @@
 import { User } from "nexus-prisma";
-import { list, nonNull, objectType } from "nexus";
+import { list, nonNull, objectType, interfaceType } from "nexus";
 import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 
 export const UserOrderInput = createOrder({
@@ -23,8 +23,12 @@ export const UserOrderInput = createOrder({
   ],
 });
 
-export const UserType = objectType({
+export const UserType = interfaceType({
   ...setupObjectType(User),
+  // should be optional => fallback to default
+  resolveType() {
+    return null;
+  },
   definition(t) {
     t.field(User.name);
     t.field(User.fullName);
@@ -35,12 +39,6 @@ export const UserType = objectType({
     t.field(User.createdAt);
     t.field(User.updatedAt);
 
-    t.field({
-      ...User.usageQuota,
-      resolve(user, args, ctx, info) {
-        return user.name === ctx.username ? User.usageQuota.resolve(user, args, ctx, info) : null;
-      },
-    });
     t.field({
       ...User.modules,
       complexity,
@@ -90,21 +88,6 @@ export const UserType = objectType({
           },
           ...ordering(args),
         });
-      },
-    });
-    t.field({
-      ...User.accessTokens,
-      complexity,
-      args: baseArgs("AccessToken"),
-      resolve(user, args, ctx) {
-        return user.name === ctx.username
-          ? ctx.prisma.accessToken.findMany({
-              where: {
-                username: { equals: user.name },
-              },
-              ...ordering(args),
-            })
-          : [];
       },
     });
   },
