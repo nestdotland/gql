@@ -96,11 +96,15 @@ async function rateLimiter(username: string): Promise<UsageQuotaApi> {
     data,
   });
 
+  // DDOS ?
   if (apiQuota.used >= 10 * apiQuota.limit) {
-    // DDOS ?
+    // Reduces the number of warnings
+    if (apiQuota.used % apiQuota.limit === 0) {
+      console.warn(`Excessive number of requests from user ${username} (${apiQuota.used})`);
+    }
   }
 
-  if (apiQuota.used >= apiQuota.limit) {
+  if (apiQuota.used > apiQuota.limit) {
     throw new ApolloError(`Too many requests, please try again later. (${apiQuota.limit} req/h)`, "TOO_MANY_REQUESTS");
   }
 

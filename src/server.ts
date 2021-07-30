@@ -30,7 +30,7 @@ export const server = new ApolloServer({
                   simpleEstimator({ defaultComplexity: 1 }),
                 ],
               });
-              if (complexity >= maxComplexity) {
+              if (complexity > maxComplexity) {
                 throw new ForbiddenError(
                   `Query is too complex: ${complexity}. Maximum allowed complexity: ${maxComplexity}`
                 );
