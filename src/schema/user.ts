@@ -90,5 +90,37 @@ export const UserType = interfaceType({
         });
       },
     });
+    t.field({
+      ...User.teams,
+      complexity,
+      type: nonNull(list(nonNull("Team"))),
+      args: baseArgs("Team"),
+      resolve(user, args, ctx) {
+        return ctx.prisma.team.findMany({
+          where: {
+            members: {
+              some: {
+                memberName: { equals: user.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...User.createdTeams,
+      complexity,
+      type: nonNull(list(nonNull("Team"))),
+      args: baseArgs("Team"),
+      resolve(user, args, ctx) {
+        return ctx.prisma.team.findMany({
+          where: {
+            ownerName: { equals: user.name },
+          },
+          ...ordering(args),
+        });
+      },
+    });
   },
 });

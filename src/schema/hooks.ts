@@ -1,4 +1,4 @@
-import { DevConfigHook, HookKey, HookMode } from "nexus-prisma";
+import { DevConfigHook, HookAction, HookPrefix } from "nexus-prisma";
 import { enumType, objectType } from "nexus";
 
 export function toHook(mode: string, key: string) {
@@ -9,9 +9,9 @@ export const DevConfigHookType = objectType({
   name: "Hooks",
   sourceType: "Map<string,string>",
   definition(t) {
-    for (const mode of HookMode.members) {
-      for (const key of HookKey.members) {
-        const hook = toHook(mode, key);
+    for (const prefix of HookPrefix.members) {
+      for (const action of HookAction.members) {
+        const hook = toHook(prefix, action);
         t.string(hook, {
           resolve(hooks) {
             return hooks.get(hook);

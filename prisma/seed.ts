@@ -107,9 +107,9 @@ export async function seed() {
         return {
           moduleName: moduleData.name,
           authorName: moduleData.author,
-          key: "pack" as const,
-          mode: "pre" as const,
-          value: "command -h",
+          action: "pack" as const,
+          prefix: "pre" as const,
+          run: "command -h",
         };
       }),
     })
@@ -201,6 +201,7 @@ export async function seed() {
                 moduleName: moduleData.name,
                 versionName: version.name,
                 path: file,
+                size: Math.floor(Math.random() * 1000),
                 url: `${moduleData.src}${version}/${file}`,
                 mimeType: mimeType.getType(file),
               };

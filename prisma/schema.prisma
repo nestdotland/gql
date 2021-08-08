@@ -30,13 +30,13 @@ model User {
   updatedAt DateTime @default(now()) @updatedAt
 
   // Relationships
-  modules       Module[]       @relation("rModuleToUser")
-  publications  Version[]      @relation("rVersionToUser")
-  contributions Contribution[] @relation("rContributionToUser")
-  accessTokens  AccessToken[]  @relation("rAccessTokensToUser")
-  createdTeams  Team[]         @relation("rTeamToUser")
-  teams         TeamMember[]   @relation("rMemberToUser")
-  usageQuota    UsageQuota?    @relation("rUsageQuotaToUser")
+  modules       Module[]
+  publications  Version[]
+  contributions Contribution[]
+  accessTokens  AccessToken[]
+  teams         TeamMember[]
+  createdTeams  Team[]
+  usageQuota    UsageQuota?
 
   // Primary Key
   @@id([name])
@@ -55,9 +55,9 @@ model UsageQuota {
   username String @db.VarChar(64)
 
   // Relationships
-  user    User               @relation("rUsageQuotaToUser", fields: [username], references: [name])
-  api     UsageQuotaApi?     @relation("rUsageQuotaToUsageQuotaApi")
-  publish UsageQuotaPublish? @relation("rUsageQuotaToUsageQuotaPublish")
+  user    User               @relation(fields: [username], references: [name])
+  api     UsageQuotaApi?
+  publish UsageQuotaPublish?
 
   // Primary Key
   @@id([username])
@@ -74,7 +74,7 @@ model UsageQuotaApi {
   username String @db.VarChar(64)
 
   // Relationships
-  quota UsageQuota @relation("rUsageQuotaToUsageQuotaApi", fields: [username], references: [username])
+  quota UsageQuota @relation(fields: [username], references: [username])
 
   // Primary Key
   @@id([username])
@@ -92,7 +92,7 @@ model UsageQuotaPublish {
   username String @db.VarChar(64)
 
   // Relationships
-  quota UsageQuota @relation("rUsageQuotaToUsageQuotaPublish", fields: [username], references: [username])
+  quota UsageQuota @relation(fields: [username], references: [username])
 
   // Primary Key
   @@id([username])
@@ -110,7 +110,7 @@ model AccessToken {
   username String @db.VarChar(64)
 
   // Relationships
-  user User @relation("rAccessTokensToUser", fields: [username], references: [name])
+  user User @relation(fields: [username], references: [name])
 
   // Primary Key
   @@id([sha256])
@@ -123,8 +123,8 @@ model Contribution {
   moduleName      String @db.VarChar(64)
 
   // Relationships
-  contributor User   @relation("rContributionToUser", fields: [contributorName], references: [name])
-  module      Module @relation("rContributionToModule", fields: [moduleAuthor, moduleName], references: [authorName, name])
+  contributor User   @relation(fields: [contributorName], references: [name])
+  module      Module @relation(fields: [moduleAuthor, moduleName], references: [authorName, name])
 
   // Primary Key
   @@id([contributorName, moduleAuthor, moduleName])
@@ -154,14 +154,14 @@ model Module {
   authorName String @db.VarChar(64)
 
   // Relationships
-  author        User            @relation("rModuleToUser", fields: [authorName], references: [name])
+  author        User            @relation(fields: [authorName], references: [name])
   teams         TeamOwnership[]
-  versions      Version[]       @relation("rVersionToModule")
-  tags          Tag[]           @relation("rTagToModule")
-  contributors  Contribution[]  @relation("rContributionToModule")
-  vanityName    VanityModule?   @relation("rVanityModuleToModule")
-  publishConfig PublishConfig?  @relation("rPublishConfigToModule")
-  devConfig     DevConfig?      @relation("rDevConfigToModule")
+  versions      Version[]
+  tags          Tag[]
+  contributors  Contribution[]
+  vanityName    VanityModule?
+  publishConfig PublishConfig?
+  devConfig     DevConfig?
 
   // Primary Key
   @@id([authorName, name])
@@ -177,7 +177,7 @@ model VanityModule {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  module Module @relation("rVanityModuleToModule", fields: [authorName, moduleName], references: [authorName, name])
+  module Module @relation(fields: [authorName, moduleName], references: [authorName, name])
 
   // Primary Key
   @@id([name, authorName, moduleName])
@@ -196,10 +196,10 @@ model PublishConfig {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  module Module @relation("rPublishConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
+  module Module @relation(fields: [authorName, moduleName], references: [authorName, name])
 
   // Primary Key
-  SupportedEngine SupportedEngine[] @relation("rSupportedEngineToPublishConfig")
+  SupportedEngine SupportedEngine[]
   @@id([authorName, moduleName])
 }
 
@@ -213,8 +213,8 @@ model DevConfig {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  module Module          @relation("rDevConfigToModule", fields: [authorName, moduleName], references: [authorName, name])
-  hooks  DevConfigHook[] @relation("rDevConfigToHooks")
+  module Module          @relation(fields: [authorName, moduleName], references: [authorName, name])
+  hooks  DevConfigHook[]
 
   // Primary Key
   @@id([authorName, moduleName])
@@ -243,7 +243,7 @@ model DevConfigHook {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  config DevConfig @relation("rDevConfigToHooks", fields: [authorName, moduleName], references: [authorName, moduleName])
+  config DevConfig @relation(fields: [authorName, moduleName], references: [authorName, moduleName])
 
   // Primary Key
   @@id([authorName, moduleName, prefix, action])
@@ -270,15 +270,15 @@ model Version {
   moduleName String @db.VarChar(64)
 
   // Relationships
-  module                 Module                      @relation("rVersionToModule", fields: [authorName, moduleName], references: [authorName, name])
-  publisher              User                        @relation("rVersionToUser", fields: [publisherName], references: [name])
-  files                  File[]                      @relation("rFileToVersion")
-  tags                   Tag[]                       @relation("rTagToVersion")
+  module                 Module                      @relation(fields: [authorName, moduleName], references: [authorName, name])
+  publisher              User                        @relation(fields: [publisherName], references: [name])
+  files                  File[]
+  tags                   Tag[]
   dependents             DependencyGraph[]           @relation("rDependentToDependency")
   dependencies           DependencyGraph[]           @relation("rDependencyToDependent")
-  taggedDependencies     TaggedDependencyGraph[]     @relation("rTaggedDependencyToDependent")
-  thirdPartyDependencies ThirdPartyDependencyGraph[] @relation("rVersionToThirdPartyDependency")
-  engines                SupportedEngine[]           @relation("rSupportedEngineToVersion")
+  taggedDependencies     TaggedDependencyGraph[]
+  thirdPartyDependencies ThirdPartyDependencyGraph[]
+  engines                SupportedEngine[]
 
   // Primary Key
   @@id([authorName, moduleName, name])
@@ -286,12 +286,12 @@ model Version {
 
 model Engine {
   // Properties
-  id       String @default(uuid()) @db.Uuid
+  id       String @unique @default(uuid()) @db.Uuid
   platform String @db.VarChar(64)
   range    String @db.VarChar(64)
 
   // relationships
-  support SupportedEngine[] @relation("rSupportedEngineToEngine")
+  support SupportedEngine[]
 
   // Primary Key
   @@id([platform, range])
@@ -306,9 +306,9 @@ model SupportedEngine {
   range       String @db.VarChar(64)
 
   // Relationships
-  engine  Engine        @relation("rSupportedEngineToEngine", fields: [platform, range], references: [platform, range])
-  version Version       @relation("rSupportedEngineToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
-  config  PublishConfig @relation("rSupportedEngineToPublishConfig", fields: [authorName, moduleName], references: [authorName, moduleName])
+  engine  Engine        @relation(fields: [platform, range], references: [platform, range])
+  version Version       @relation(fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
+  config  PublishConfig @relation(fields: [authorName, moduleName], references: [authorName, moduleName])
 
   // Primary Key
   @@id([authorName, moduleName, versionName, platform, range])
@@ -327,9 +327,9 @@ model Tag {
   versionName String @db.VarChar(64)
 
   // Relationships
-  module     Module                  @relation("rTagToModule", fields: [authorName, moduleName], references: [authorName, name])
-  version    Version                 @relation("rTagToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
-  dependents TaggedDependencyGraph[] @relation("rTaggedDependentToDependency")
+  module     Module                  @relation(fields: [authorName, moduleName], references: [authorName, name])
+  version    Version                 @relation(fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
+  dependents TaggedDependencyGraph[]
 
   // Primary Key
   @@id([authorName, moduleName, name])
@@ -362,8 +362,8 @@ model TaggedDependencyGraph {
   dependencyTag    String @db.VarChar(64)
 
   // Relationships
-  dependent  Version @relation("rTaggedDependencyToDependent", fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
-  dependency Tag     @relation("rTaggedDependentToDependency", fields: [dependencyAuthor, dependencyName, dependencyTag], references: [authorName, moduleName, name])
+  dependent  Version @relation(fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
+  dependency Tag     @relation(fields: [dependencyAuthor, dependencyName, dependencyTag], references: [authorName, moduleName, name])
 
   // Primary Key
   @@id([dependentAuthor, dependentName, dependentVersion, dependencyAuthor, dependencyName, dependencyTag])
@@ -378,8 +378,8 @@ model ThirdPartyModule {
   hostname String
 
   // Relationships
-  host       ThirdPartyHost              @relation("rThirdPartyModuleToThirdPartyHost", fields: [hostname], references: [hostname])
-  dependents ThirdPartyDependencyGraph[] @relation("rThirdPartyModuleToThirdPartyDependency")
+  host       ThirdPartyHost              @relation(fields: [hostname], references: [hostname])
+  dependents ThirdPartyDependencyGraph[]
 
   // Primary Key
   @@id([path, hostname])
@@ -392,7 +392,7 @@ model ThirdPartyHost {
   verified Boolean @default(false)
 
   // Relationships
-  modules ThirdPartyModule[] @relation("rThirdPartyModuleToThirdPartyHost")
+  modules ThirdPartyModule[]
 
   // Primary Key
   @@id([hostname])
@@ -407,8 +407,8 @@ model ThirdPartyDependencyGraph {
   dependencyPath   String
 
   // Relationships
-  dependent  Version          @relation("rVersionToThirdPartyDependency", fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
-  dependency ThirdPartyModule @relation("rThirdPartyModuleToThirdPartyDependency", fields: [dependencyHost, dependencyPath], references: [hostname, path])
+  dependent  Version          @relation(fields: [dependentAuthor, dependentName, dependentVersion], references: [authorName, moduleName, name])
+  dependency ThirdPartyModule @relation(fields: [dependencyHost, dependencyPath], references: [hostname, path])
 
   // Primary Key
   @@id([dependentAuthor, dependentName, dependentVersion, dependencyHost, dependencyPath])
@@ -429,7 +429,7 @@ model File {
   versionName String @db.VarChar(64)
 
   // Relationships
-  version Version @relation("rFileToVersion", fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
+  version Version @relation(fields: [authorName, moduleName, versionName], references: [authorName, moduleName, name])
 
   // Primary Key
   @@id([authorName, moduleName, versionName, path])
@@ -438,10 +438,8 @@ model File {
 /// TEAM
 model Team {
   // Properties
-  id   String @default(uuid()) @db.Uuid
+  id   String @unique @default(uuid()) @db.Uuid
   name String @db.VarChar(64)
-
-  moduleName String   @db.VarChar(64)
   createdAt  DateTime
   updatedAt  DateTime
 
@@ -450,8 +448,8 @@ model Team {
 
   // Relationships
   members TeamMember[]
-  owner   User            @relation("rTeamToUser", fields: [ownerName], references: [name])
-  module  TeamOwnership[]
+  owner   User            @relation(fields: [ownerName], references: [name])
+  modules TeamOwnership[]
 
   // Primary Key
   @@id([ownerName, name])
@@ -468,20 +466,20 @@ model TeamOwnership {
   team   Team   @relation(fields: [teamOwner, teamName], references: [ownerName, name])
   module Module @relation(fields: [moduleAuthor, moduleName], references: [authorName, name])
 
-  @@id([teamOwner, teamName])
+  @@id([teamOwner, teamName, moduleAuthor, moduleName])
 }
 
 model TeamMember {
   // Properties
-  name        String @db.VarChar(64)
+  memberName        String @db.VarChar(64) @map("name")
   teamOwner   String @db.VarChar(64)
   teamName    String @db.VarChar(64)
   permissions String @default("00000000000000000000000000000000") @db.Bit(32)
 
   // Relationships
   team Team @relation(fields: [teamOwner, teamName], references: [ownerName, name])
-  user User @relation("rMemberToUser", fields: [name], references: [name])
+  user User @relation(fields: [memberName], references: [name])
 
   // Primary Key
-  @@id([name, teamOwner, teamName])
+  @@id([memberName, teamOwner, teamName])
 }

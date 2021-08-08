@@ -31,7 +31,6 @@ export const VersionType = objectType({
     t.field(Version.deprecated);
     t.field(Version.vulnerable);
     t.field(Version.unlisted);
-    t.field(Version.supportedDeno);
     t.field(Version.main);
     t.field(Version.bin);
     t.field(Version.lockfile);
@@ -144,6 +143,26 @@ export const VersionType = objectType({
                 dependentAuthor: { equals: version.authorName },
                 dependentName: { equals: version.moduleName },
                 dependentVersion: { equals: version.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
+    t.field({
+      ...Version.engines,
+      complexity,
+      type: nonNull(list(nonNull("Engine"))),
+      args: baseArgs("Engine"),
+      resolve(version, args, ctx) {
+        return ctx.prisma.engine.findMany({
+          where: {
+            support: {
+              some: {
+                authorName: { equals: version.authorName },
+                moduleName: { equals: version.moduleName },
+                versionName: { equals: version.name },
               },
             },
           },

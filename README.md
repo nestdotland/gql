@@ -18,17 +18,15 @@ yarn install
 ```sql
 CREATE DATABASE nestdotland;
 ```
-3. (Optional) Grant write and read access to the `postgres` user. Create a new one if needed
+3. 
 ```sql
-GRANT ALL ON ALL TABLES IN SCHEMA public TO "postgres";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 4. Create a `.env` file with the required variables
 ```json
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/nestdotland?schema=public"
 PEPPER="7+g+YpeiGJm564="
 GRAPHQL_PORT=4000
-MAX_QUERY_COMPLEXITY=1000
-HOURLY_REQUEST_LIMIT=200
 ```
 5. Create tables
 ```sh

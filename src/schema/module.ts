@@ -44,8 +44,25 @@ export const ModuleType = objectType({
     t.field(Module.updatedAt);
 
     t.field(Module.author);
-    t.field(Module.publishConfig);
-    t.field(Module.devConfig);
+    t.field({
+      ...Module.teams,
+      complexity,
+      type: nonNull(list(nonNull("Team"))),
+      args: baseArgs("Team"),
+      resolve(module, args, ctx) {
+        return ctx.prisma.team.findMany({
+          where: {
+            modules: {
+              some: {
+                moduleAuthor: { equals: module.authorName },
+                moduleName: { equals: module.name },
+              },
+            },
+          },
+          ...ordering(args),
+        });
+      },
+    });
     t.field({
       ...Module.versions,
       complexity,
@@ -93,5 +110,22 @@ export const ModuleType = objectType({
         });
       },
     });
+    t.string(Module.vanityName.name, {
+      description: Module.vanityName.description,
+      async resolve(module, _args, ctx) {
+        const vanity = await ctx.prisma.vanityModule.findFirst({
+          select: {
+            name: true,
+          },
+          where: {
+            authorName: { equals: module.authorName },
+            moduleName: { equals: module.name },
+          },
+        });
+        return vanity?.name ?? null;
+      },
+    });
+    t.field(Module.publishConfig);
+    t.field(Module.devConfig);
   },
 });

@@ -1,14 +1,20 @@
-import { User } from "nexus-prisma";
-import { objectType, nonNull } from "nexus";
+import { User, Tier } from "nexus-prisma";
+import { objectType, nonNull, FieldResolver, enumType } from "nexus";
 import { baseArgs, complexity, ordering, setupObjectType } from "../base";
 
 import { UserType } from "./user";
+
+export const TierEnum = enumType(Tier);
 
 export const ViewerType = objectType({
   ...setupObjectType(User),
   name: "Viewer",
   definition(t) {
     t.implements(UserType);
+    t.field({
+      ...User.tier,
+      resolve: (User.tier.resolve as unknown) as FieldResolver<"Viewer", "tier">,
+    });
 
     t.field({
       ...User.usageQuota,
