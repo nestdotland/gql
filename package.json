@@ -51,5 +51,8 @@
     "nexus": "^1.1.0",
     "nexus-prisma": "^0.29.1",
     "semver": "^7.3.4"
+  },
+  "prisma": {
+    "schema": "./schema/prisma/schema.prisma"
   }
 }
