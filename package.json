@@ -32,7 +32,7 @@
     "prisma": "~2.30.0",
     "ts-node": "^10.0.0",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.3.5"
+    "typescript": "^4.4.2"
   },
   "prettier": {
     "singleQuote": false,
@@ -44,7 +44,7 @@
   "dependencies": {
     "@prisma/client": "~2.25.0",
     "apollo-server": "^2.21.2",
-    "dotenv": "^8.2.0",
+    "dotenv": "^10.0.0",
     "graphql": "^15.5.0",
     "graphql-iso-date": "^3.6.1",
     "graphql-query-complexity": "^0.9.0",
