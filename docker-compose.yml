@@ -11,6 +11,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports: ["80:4000"]
+    ports: ["4000:4000"]
     env_file: .env
     container_name: nest_gql
+    depends_on: ["db"]

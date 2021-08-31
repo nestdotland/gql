@@ -19,6 +19,7 @@ TODO
 2. Setup local database
 
    ```sh
+   cp example.env .env
    docker-compose up -d db
    ```
 
