@@ -1,4 +1,4 @@
-import { DevConfig, HookKey, HookMode } from "nexus-prisma";
+import { DevConfig, HookPrefix, HookAction } from "nexus-prisma";
 import { list, nonNull, objectType } from "nexus";
 import { baseArgs, complexity, createOrder, ordering, setupObjectType } from "../base";
 import { toHook } from "./hooks";
@@ -28,7 +28,7 @@ export const DevConfigType = objectType({
             moduleName: { equals: config.moduleName },
           },
         });
-        return new Map(hooks.map((hook) => [toHook(hook.mode, hook.key), hook.value]));
+        return new Map(hooks.map((hook) => [toHook(hook.prefix, hook.action), hook.run]));
       },
     });
   },
