@@ -45,7 +45,7 @@
     "@prisma/client": "~2.27.0",
     "apollo-server": "^3.3.0",
     "dotenv": "^10.0.0",
-    "graphql": "^15.5.1",
+    "graphql": "^15.5.2",
     "graphql-iso-date": "^3.6.1",
     "graphql-query-complexity": "^0.9.0",
     "nexus": "^1.1.0",
