@@ -1,0 +1,14 @@
+.vscode
+
+node_modules
+dist
+*.log
+
+.env
+connect.sh
+
+prisma/migrations
+schema.graphql
+src/generated
+
+*_

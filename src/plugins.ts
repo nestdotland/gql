@@ -9,6 +9,7 @@ const nullGuard = nullabilityGuardPlugin({
     String: () => "",
     Boolean: () => false,
     DateTime: () => new Date(),
+    ID: () => "00000000-0000-0000-0000-000000000000",
   },
 });
 
