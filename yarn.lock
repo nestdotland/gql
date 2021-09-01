@@ -757,6 +757,11 @@ core-js-pure@^3.10.2:
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.16.4.tgz#8b23122628d88c560f209812b9b2d9ebbce5e29c"
   integrity sha512-bY1K3/1Jy9D8Jd12eoeVahNXHLfHFb4TXWI8SQ4y8bImR9qDPmGITBAfmcffTkgUvbJn87r8dILOTWW5kZzkgA==
 
+core-js@^3.4.1:
+  version "3.16.4"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.16.4.tgz#0fb1029a554fc2688c0963d7c900e188188a78e0"
+  integrity sha512-Tq4GVE6XCjE+hcyW6hPy0ofN3hwtLudz5ZRdrlCnsnD/xkm/PWQRudzYHiKgZKUcefV6Q57fhDHjZHJP5dpfSg==
+
 cors@^2.8.5:
   version "2.8.5"
   resolved "https://registry.yarnpkg.com/cors/-/cors-2.8.5.tgz#eac11da51592dd86b9f06f6e7ac293b3df875d29"
@@ -1469,10 +1474,10 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
-nexus-prisma@^0.32.0:
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.32.0.tgz#9aaaea0cac532a1714c53c3b181f3c980bf53839"
-  integrity sha512-+2/Goa9WWyL3sOrL5aFL7QkbyncM3y2Zk+MMJCWNqoCBvP2tJEnhfzSeQcADxDlocWh/2zByy0lvM01bNwOXug==
+nexus-prisma@^0.33.0:
+  version "0.33.0"
+  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.33.0.tgz#4d82ed3367b7e172defcf5776d390f5630e03573"
+  integrity sha512-AHNv+6qQQbfqtMv5Ilm52wy16MrhjTWMvTr/iMfTy2qs4ihYgyxIfUJzOO7F8qeDk0aVBdESGgspL03kdq+2tg==
   dependencies:
     "@prisma/generator-helper" "^2.29.x"
     debug "^4.3.2"
@@ -1488,6 +1493,7 @@ nexus-prisma@^0.32.0:
     pluralize "^8.0.0"
     semver "^7.3.5"
     setset "^0.0.7"
+    ts-replace-all "^1.0.0"
     tslib "^2.3.0"
 
 nexus@^1.1.0:
@@ -1965,6 +1971,13 @@ ts-node@^9.0.0:
     make-error "^1.1.1"
     source-map-support "^0.5.17"
     yn "3.1.1"
+
+ts-replace-all@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ts-replace-all/-/ts-replace-all-1.0.0.tgz#ef28283ccdb4da7d69fb03cf543e09e51711659b"
+  integrity sha512-6uBtdkw3jHXkPtx/e9xB/5vcngMm17CyJYsS2YZeQ+9FdRnt6Ev5g931Sg2p+dxbtMGoCm13m3ax/obicTZIkQ==
+  dependencies:
+    core-js "^3.4.1"
 
 tsconfig@^7.0.0:
   version "7.0.0"
