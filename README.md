@@ -6,7 +6,18 @@ Nest's (soon to be) official GraphQL API to query and mutate module data
 
 ## Getting started
 
-TODO
+1. Set the evvironment variables
+
+   ```sh
+   cp example.env .env.prod
+   # and update the environmet variables
+   ```
+
+2. Start the Docker container
+
+   ```sh
+   docker-compose up
+   ```
 
 ## Contributing
 
@@ -20,14 +31,14 @@ TODO
 
    ```sh
    cp example.env .env
-   docker-compose up -d db
+   docker-compose -f docker-compose.dev.yml up -d db
    ```
 
 3. Create a `.env` file with the required variables
 
    ```json
    DATABASE_URL="postgresql://nest:nest@localhost:5432/nest?schema=public"
-   PEPPER="7+g+YpeiGJm564="
+   PEPPER="development"
    GRAPHQL_PORT=4000
    ```
 

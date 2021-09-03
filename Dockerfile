@@ -1,6 +1,5 @@
 # Setup
 FROM node:14
-WORKDIR /api
 
 # Build
 COPY . .

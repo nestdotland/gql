@@ -1,8 +1,0 @@
-version: "3.9"
-
-services:
-  gql:
-    image: ghcr.io/nestdotland/gql:latest
-    ports: ["80:4000"]
-    env_file: .env.prod
-    container_name: nest_gql
