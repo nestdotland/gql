@@ -85,10 +85,10 @@
   dependencies:
     "@prisma/engines-version" "2.30.1-2.b8c35d44de987a9691890b3ddf3e2e7effb9bf20"
 
-"@prisma/debug@2.30.2":
-  version "2.30.2"
-  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-2.30.2.tgz#603b9ec41d04fa82f683e60264e277adbfac54ed"
-  integrity sha512-QFUTRPfFhZ6oryH5KsEaBeBMpFsx16zBWwlBBPkGhfiLRL8eo9vxm4+EVKzKob5PAmrfJCJ7DQvb/k6rdSXdxg==
+"@prisma/debug@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-3.0.2.tgz#a99ae8dfa075f4e58a25666d609deb900820c5be"
+  integrity sha512-D2/LghEqphW6h9ycT8nfdEw2rzT0LXmikBy2101aYcY28vS01rHTVIUOiz/DDaltlqY1qBat3F5vgM+6GwIqbw==
   dependencies:
     "@types/debug" "4.1.7"
     debug "4.3.2"
@@ -104,12 +104,12 @@
   resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-2.31.0-32.2452cc6313d52b8b9a96999ac0e974d0aedf88db.tgz#b6cf70bc05dd2a62168a16f3ea58a1b011074621"
   integrity sha512-Q9CwN6e5E5Abso7J3A1fHbcF4NXGRINyMnf7WQ07fXaebxTTARY5BNUzy2Mo5uH82eRVO5v7ImNuR044KTjLJg==
 
-"@prisma/generator-helper@^2.29.x":
-  version "2.30.2"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-2.30.2.tgz#0b0a5480a481dd300e93d6dfec62450ed67b4107"
-  integrity sha512-9iCBIlG+XwagakXV9MU+TTbTB+72iCFcoQwqx4kuhvnZnrPiFppuM6XXDW2EteBIY2G4oCkasMFOC68NQPbfbg==
+"@prisma/generator-helper@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-3.0.2.tgz#6aa49ec8d7b31491b21ac99d3020308f93346f22"
+  integrity sha512-ACWo7j2zapEq8bMNNgfS2QRa9Kkl/rSqNX8iiKo01D1/79jy/MjI+k+S8ByOQBzTeIdiRmu3CF7dO6lV0UQ3eg==
   dependencies:
-    "@prisma/debug" "2.30.2"
+    "@prisma/debug" "3.0.2"
     "@types/cross-spawn" "6.0.2"
     chalk "4.1.2"
     cross-spawn "7.0.3"
@@ -1026,7 +1026,7 @@ fs-capacitor@^2.0.4:
   resolved "https://registry.yarnpkg.com/fs-capacitor/-/fs-capacitor-2.0.4.tgz#5a22e72d40ae5078b4fe64fe4d08c0d3fc88ad3c"
   integrity sha512-8S4f4WsCryNw2mJJchi46YgB6CR5Ze+4L1h8ewl9tEpL4SJ3ZO+c/bS4BWhB8bK+O3TMqhuZarTitd0S0eh2pA==
 
-fs-jetpack@^4.1.0:
+fs-jetpack@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-4.1.1.tgz#83bd16f2c282eb05e4e6f62be4c5fe4f767c179c"
   integrity sha512-BSZ+f6VjrMInpA6neNnUhQNFPPdf3M+I8v8M9dBRrbmExd8GNRbTJIq1tjNh86FQ4a+EoMtPcp1oemwY5ghGBw==
@@ -1098,12 +1098,12 @@ graphql-query-complexity@^0.9.0:
   dependencies:
     lodash.get "^4.4.2"
 
-graphql-scalars@^1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.10.0.tgz#9daf9252b16e6fae553a06976163a23f41b65dfd"
-  integrity sha512-LONlj8FfhA2iGpkZJWf5e4PVAHXxnZEHSOEvowLYvNXl/TNnhIck8VmE+lren/aa6GKrG+lZufo5lgnyjxcF6g==
+graphql-scalars@^1.10.1:
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.10.1.tgz#5b528446507d9c2bad4b813d0fcd306633e9fd77"
+  integrity sha512-/6vDkUogePfumSJaCRVrVT1vpEhvE0m36AHTPzhLC/tucWxVolOCj0EgGKVUMc0uehe93ByuRBj8rEDaPRXVxg==
   dependencies:
-    tslib "~2.2.0"
+    tslib "~2.3.0"
 
 graphql-subscriptions@^1.0.0:
   version "1.2.1"
@@ -1474,18 +1474,18 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
-nexus-prisma@^0.33.0:
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.33.0.tgz#4d82ed3367b7e172defcf5776d390f5630e03573"
-  integrity sha512-AHNv+6qQQbfqtMv5Ilm52wy16MrhjTWMvTr/iMfTy2qs4ihYgyxIfUJzOO7F8qeDk0aVBdESGgspL03kdq+2tg==
+nexus-prisma@^0.34.0:
+  version "0.34.0"
+  resolved "https://registry.yarnpkg.com/nexus-prisma/-/nexus-prisma-0.34.0.tgz#f303302dee119f74e95a127f624a7518938a4656"
+  integrity sha512-OoyKBmsI+RKh3lSMyWLUIcugsUOw/YZWr9yKpgvpeq+ttVa+KwEZvbM8ZGxhnrEkxpSa+QzUiq6HZLiSBTTwmA==
   dependencies:
-    "@prisma/generator-helper" "^2.29.x"
+    "@prisma/generator-helper" "^3.0.2"
     debug "^4.3.2"
     decimal.js "^10.3.1"
     dindist "^1.0.2"
     expand-tilde "^2.0.2"
-    fs-jetpack "^4.1.0"
-    graphql-scalars "^1.10.0"
+    fs-jetpack "^4.1.1"
+    graphql-scalars "^1.10.1"
     kleur "^4.1.4"
     lodash "^4.17.21"
     ono "^7.1.3"
@@ -1494,7 +1494,7 @@ nexus-prisma@^0.33.0:
     semver "^7.3.5"
     setset "^0.0.7"
     ts-replace-all "^1.0.0"
-    tslib "^2.3.0"
+    tslib "^2.3.1"
 
 nexus@^1.1.0:
   version "1.1.0"
@@ -1994,15 +1994,10 @@ tslib@^1.10.0, tslib@^1.9.3:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.0.3, tslib@^2.1.0, tslib@^2.2.0, tslib@^2.3.0:
+tslib@^2.0.3, tslib@^2.1.0, tslib@^2.2.0, tslib@^2.3.1, tslib@~2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz#e8a335add5ceae51aa261d32a490158ef042ef01"
   integrity sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==
-
-tslib@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
-  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
 
 type-fest@^0.20.0:
   version "0.20.2"

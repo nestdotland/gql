@@ -49,7 +49,7 @@
     "graphql-iso-date": "^3.6.1",
     "graphql-query-complexity": "^0.9.0",
     "nexus": "^1.1.0",
-    "nexus-prisma": "^0.33.0",
+    "nexus-prisma": "^0.34.0",
     "semver": "^7.3.5"
   }
 }
