@@ -1,8 +1,8 @@
 # Nest GraphQL API
 
-Nest's (soon to be) official GraphQL API to query and mutate module data
+Nest's (soon to be) GraphQL API to query and mutate module data
 
-> ### **NOTE:** _Nest GraphQL API is still under development and non-operational. Until official release, [x](https://github.com/nestdotland/x) is the official API._
+> ### **NOTE:** _Nest GraphQL API is still under development and non-operational. Until official release, [x](https://x.nest.land/api/packages) is the official API._
 
 ## Getting started
 

@@ -5,14 +5,14 @@ services:
     image: ghcr.io/nestdotland/db:main
     ports: ["5432:5432"]
     env_file: .env
-    container_name: nest_db
+    container_name: nest_dev_db
 
   gql:
-    image: nest_gql_dev
+    image: nest_dev_gql
     build:
       context: .
       dockerfile: Dockerfile
     ports: ["4000:4000"]
     env_file: .env
-    container_name: nest_gql
+    container_name: nest_dev_gql
     depends_on: ["db"]
